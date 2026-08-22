@@ -7,6 +7,7 @@ import groupRoutes from './routes/groupRoutes';
 import assignmentRoutes from './routes/assignmentRoutes';
 import submissionRoutes from './routes/submissionRoutes';
 import analyticsRoutes from './routes/analyticsRoutes';
+import { seedSystemAdmin } from './scripts/seedAdmin';
 
 const app = express();
 
@@ -39,8 +40,10 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 
 // ── Start ────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
+  // Ensure the system admin account exists (idempotent)
+  await seedSystemAdmin();
 });
 
 export default app;

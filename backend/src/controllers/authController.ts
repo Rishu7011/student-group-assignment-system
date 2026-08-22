@@ -28,17 +28,18 @@ function safeUser(user: UserRow): Omit<UserRow, 'password_hash'> {
 }
 
 // POST /api/auth/register
+// ⚠️  Public registration is restricted to the 'student' role only.
+//    Admin accounts are provisioned exclusively via the server-side seed script.
 export async function register(req: Request, res: Response): Promise<void> {
-  const { name, email, password, role } = req.body as {
-    name?: string; email?: string; password?: string; role?: string;
+  const { name, email, password } = req.body as {
+    name?: string; email?: string; password?: string;
   };
 
-  if (!name || !email || !password || !role) {
-    res.status(400).json({ error: 'name, email, password and role are required' });
-    return;
-  }
-  if (!['student', 'admin'].includes(role)) {
-    res.status(400).json({ error: "role must be 'student' or 'admin'" });
+  // Silently ignore any role the client sends — always force student
+  const role = 'student';
+
+  if (!name || !email || !password) {
+    res.status(400).json({ error: 'name, email, and password are required' });
     return;
   }
   if (password.length < 6) {
