@@ -1,14 +1,14 @@
 # Backend Dev Notes
 
 ## Stack
-- **Runtime:** Node.js 20+
+- **Runtime:** Bun 1.3+ (native TypeScript — no ts-node needed)
 - **Framework:** Express
 - **Database:** PostgreSQL 16 (via `pg` Pool)
 - **Auth:** JWT (`jsonwebtoken`) + bcrypt password hashing
 
 ## Prerequisites
+- [Bun](https://bun.sh) ≥ 1.3 (`curl -fsSL https://bun.sh/install | bash`)
 - Docker + Docker Compose (for Postgres)
-- Node.js 20+
 
 ## Running locally
 
@@ -27,11 +27,18 @@ cp .env.example .env
 
 ### 3. Install dependencies & start
 ```bash
-npm install
-npm run dev   # nodemon watches for changes
+bun install
+bun run dev    # bun --hot: hot-reload on file changes, no nodemon needed
 ```
 
 Server starts at: `http://localhost:5000`
+
+## Available scripts
+```bash
+bun run dev        # dev server with hot reload
+bun run start      # production (no hot reload)
+bun run typecheck  # run tsc --noEmit to check types
+```
 
 ## Auth Endpoints
 
@@ -54,3 +61,4 @@ Token lifetime: 7 days. Attach as `Authorization: Bearer <token>`.
 
 ---
 *This file will be merged into the root README.md in Phase 11.*
+

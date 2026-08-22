@@ -1,11 +1,12 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
+import express from 'express';
+import cors from 'cors';
+import 'dotenv/config';
 
-const authRoutes = require('./routes/authRoutes');
-const groupRoutes = require('./routes/groupRoutes');
-const assignmentRoutes = require('./routes/assignmentRoutes');
-const submissionRoutes = require('./routes/submissionRoutes');
+import authRoutes from './routes/authRoutes';
+import groupRoutes from './routes/groupRoutes';
+import assignmentRoutes from './routes/assignmentRoutes';
+import submissionRoutes from './routes/submissionRoutes';
+import analyticsRoutes from './routes/analyticsRoutes';
 
 const app = express();
 
@@ -14,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 // ── Health check ────────────────────────────────────────────────────────────
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
@@ -23,14 +24,15 @@ app.use('/api/auth', authRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/submissions', submissionRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // ── 404 handler ─────────────────────────────────────────────────────────────
-app.use((req, res) => {
+app.use((_req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
 // ── Global error handler ────────────────────────────────────────────────────
-app.use((err, req, res, next) => {
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Internal server error' });
 });
@@ -41,4 +43,4 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
 
-module.exports = app;
+export default app;
