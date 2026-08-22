@@ -1,336 +1,247 @@
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useEffect, useState } from 'react'
+import apiClient from '../api/client'
+import Sidebar from '../components/Sidebar'
 import {
-  GraduationCap,
   BarChart3,
   Users,
-  ClipboardList,
-  LogOut,
-  Bell,
-  ShieldCheck,
   BookOpen,
+  ClipboardList,
+  TrendingUp,
+  Loader2,
+  AlertCircle,
+  ShieldCheck,
 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+
+interface AnalyticsOverview {
+  totalAssignments: number
+  totalGroups: number
+  totalStudents: number
+  overallCompletionRate: number
+  perAssignment: Array<{
+    assignmentId: number
+    title: string
+    totalGroups: number
+    confirmedGroups: number
+    completionRate: number
+  }>
+  perGroup: Array<{
+    groupId: number
+    name: string
+    totalAssignments: number
+    confirmedAssignments: number
+    completionRate: number
+  }>
+}
 
 export default function AdminDashboard() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
+  const [analytics, setAnalytics] = useState<AnalyticsOverview | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login', { replace: true })
-  }
+  useEffect(() => {
+    apiClient
+      .get<AnalyticsOverview>('/analytics/overview')
+      .then((res: { data: AnalyticsOverview }) => setAnalytics(res.data))
+      .catch(() => setError('Failed to load analytics data.'))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const statCards = analytics
+    ? [
+        { label: 'Total Students', value: analytics.totalStudents, icon: <Users size={20} color="var(--color-primary)" />, bg: 'var(--color-primary-fixed)', id: 'stat-students' },
+        { label: 'Active Groups', value: analytics.totalGroups, icon: <ShieldCheck size={20} color="var(--color-secondary)" />, bg: 'var(--color-secondary-container)', id: 'stat-groups' },
+        { label: 'Assignments', value: analytics.totalAssignments, icon: <BookOpen size={20} color="#16a34a" />, bg: '#dcfce7', id: 'stat-assignments' },
+        { label: 'Completion Rate', value: `${analytics.overallCompletionRate}%`, icon: <TrendingUp size={20} color="#d97706" />, bg: '#fef3c7', id: 'stat-completion' },
+      ]
+    : []
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: 'var(--color-surface-container-low)',
-        fontFamily: 'var(--font-sans)',
-      }}
-    >
-      {/* Top nav */}
-      <header
-        style={{
-          backgroundColor: 'var(--color-surface-container-lowest)',
-          borderBottom: '1px solid var(--color-outline-variant)',
-          padding: '0 2rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          height: '3.75rem',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-          <div
-            style={{
-              width: '2rem',
-              height: '2rem',
-              borderRadius: '0.5rem',
-              backgroundColor: 'var(--color-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <GraduationCap size={16} color="white" />
-          </div>
-          <span
-            style={{
-              fontWeight: 700,
-              fontSize: '1.125rem',
-              color: 'var(--color-on-surface)',
-              letterSpacing: '-0.01em',
-            }}
-          >
-            GroupSync
-          </span>
-          <span
-            style={{
-              padding: '0.15rem 0.5rem',
-              borderRadius: '9999px',
-              fontSize: '0.7rem',
-              fontWeight: 700,
-              backgroundColor: 'var(--color-primary-fixed)',
-              color: 'var(--color-primary)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-            }}
-          >
-            Admin
-          </span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <Bell size={20} color="var(--color-on-surface-variant)" style={{ cursor: 'pointer' }} />
-          <div
-            style={{
-              width: '2.25rem',
-              height: '2.25rem',
-              borderRadius: '50%',
-              backgroundColor: 'var(--color-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-              fontSize: '0.875rem',
-              color: 'white',
-            }}
-          >
-            {user?.name?.charAt(0).toUpperCase() ?? 'A'}
-          </div>
-          <button
-            id="admin-logout"
-            onClick={handleLogout}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.375rem',
-              padding: '0.375rem 0.75rem',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              color: 'var(--color-on-surface-variant)',
-              backgroundColor: 'transparent',
-              border: '1px solid var(--color-outline-variant)',
-              borderRadius: '0.5rem',
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--color-error-container)'
-              e.currentTarget.style.color = 'var(--color-error)'
-              e.currentTarget.style.borderColor = 'var(--color-error)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.color = 'var(--color-on-surface-variant)'
-              e.currentTarget.style.borderColor = 'var(--color-outline-variant)'
-            }}
-          >
-            <LogOut size={15} />
-            Logout
-          </button>
-        </div>
-      </header>
-
-      {/* Main content */}
-      <main style={{ maxWidth: '1100px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-        {/* Welcome banner */}
+    <Sidebar>
+      <div style={{ padding: '2rem 1.75rem', maxWidth: '1000px' }}>
+        {/* Header */}
         <div
           style={{
             background: 'linear-gradient(135deg, #1a1565 0%, var(--color-primary) 100%)',
             borderRadius: '1rem',
-            padding: '2rem',
+            padding: '1.75rem 2rem',
             marginBottom: '2rem',
             color: 'white',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '1rem',
           }}
         >
-          <p style={{ fontSize: '0.875rem', opacity: 0.85, margin: '0 0 0.25rem' }}>
-            Admin Console
-          </p>
-          <h1
-            style={{
-              fontSize: '1.75rem',
-              fontWeight: 700,
-              margin: '0 0 0.5rem',
-              letterSpacing: '-0.01em',
-            }}
-          >
-            Welcome, {user?.name ?? 'Admin'} 🛡️
-          </h1>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.375rem',
-              padding: '0.25rem 0.75rem',
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              borderRadius: '9999px',
-              fontSize: '0.8rem',
-              fontWeight: 500,
-            }}
-          >
-            <ShieldCheck size={14} />
-            Administrator
+          <div>
+            <p style={{ margin: '0 0 0.25rem', fontSize: '0.875rem', opacity: 0.8 }}>Admin Console</p>
+            <h1 style={{ margin: '0 0 0.25rem', fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.01em' }}>
+              Welcome, {user?.name ?? 'Admin'} 🛡️
+            </h1>
+            <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.7 }}>{user?.email}</p>
           </div>
-        </div>
-
-        {/* Stats Row */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: '1rem',
-            marginBottom: '1.5rem',
-          }}
-        >
-          {[
-            { label: 'Total Students', value: '—', color: 'var(--color-primary)' },
-            { label: 'Active Groups', value: '—', color: 'var(--color-secondary)' },
-            { label: 'Assignments', value: '—', color: 'var(--color-tertiary-container)' },
-            { label: 'Submissions', value: '—', color: 'var(--color-outline)' },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              style={{
-                backgroundColor: 'var(--color-surface-container-lowest)',
-                borderRadius: '0.75rem',
-                padding: '1.25rem',
-                border: '1px solid var(--color-outline-variant)',
-              }}
-            >
-              <p
-                style={{
-                  fontSize: '0.8rem',
-                  fontWeight: 500,
-                  color: 'var(--color-on-surface-variant)',
-                  margin: '0 0 0.375rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                {stat.label}
-              </p>
-              <p
-                style={{
-                  fontSize: '1.75rem',
-                  fontWeight: 700,
-                  color: stat.color,
-                  margin: 0,
-                }}
-              >
-                {stat.value}
-              </p>
+          {analytics && (
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '2.5rem', fontWeight: 800, lineHeight: 1 }}>{analytics.overallCompletionRate}%</div>
+              <div style={{ fontSize: '0.75rem', opacity: 0.75 }}>Overall Completion</div>
             </div>
-          ))}
+          )}
         </div>
 
-        {/* Quick-action cards */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: '1rem',
-          }}
-        >
-          {[
-            {
-              icon: <BarChart3 size={22} color="var(--color-primary)" />,
-              title: 'Analytics Overview',
-              desc: 'View cohort statistics and submission rates.',
-              id: 'card-analytics',
-            },
-            {
-              icon: <Users size={22} color="var(--color-secondary)" />,
-              title: 'Manage Groups',
-              desc: 'Create, edit, and assign students to groups.',
-              id: 'card-manage-groups',
-            },
-            {
-              icon: <BookOpen size={22} color="var(--color-primary-container)" />,
-              title: 'Manage Assignments',
-              desc: 'Post new assignments and set deadlines.',
-              id: 'card-manage-assignments',
-            },
-            {
-              icon: <ClipboardList size={22} color="var(--color-outline)" />,
-              title: 'All Submissions',
-              desc: 'Review and grade student submissions.',
-              id: 'card-all-submissions',
-            },
-          ].map((card) => (
-            <div
-              key={card.id}
-              id={card.id}
-              style={{
-                backgroundColor: 'var(--color-surface-container-lowest)',
-                borderRadius: '0.75rem',
-                padding: '1.5rem',
-                border: '1px solid var(--color-outline-variant)',
-                cursor: 'pointer',
-                transition: 'box-shadow 0.15s, transform 0.15s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow =
-                  '0 4px 20px rgba(53, 37, 205, 0.12)'
-                e.currentTarget.style.transform = 'translateY(-2px)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = 'none'
-                e.currentTarget.style.transform = 'translateY(0)'
-              }}
-            >
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '3rem' }}>
+            <Loader2 size={32} color="var(--color-primary)" style={{ animation: 'spin 1s linear infinite' }} />
+            <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+          </div>
+        ) : error ? (
+          <div style={{ padding: '1rem', borderRadius: '0.75rem', backgroundColor: 'var(--color-error-container)', color: 'var(--color-error)', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <AlertCircle size={18} /> {error}
+          </div>
+        ) : analytics ? (
+          <>
+            {/* Stat cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+              {statCards.map((s) => (
+                <div
+                  key={s.id}
+                  id={s.id}
+                  style={{
+                    backgroundColor: 'var(--color-surface-container-lowest)',
+                    borderRadius: '0.75rem',
+                    padding: '1.25rem',
+                    border: '1px solid var(--color-outline-variant)',
+                  }}
+                >
+                  <div style={{ width: '2.25rem', height: '2.25rem', borderRadius: '0.5rem', backgroundColor: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.75rem' }}>
+                    {s.icon}
+                  </div>
+                  <p style={{ margin: '0 0 0.25rem', fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-on-surface)' }}>{s.value}</p>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-on-surface-variant)' }}>{s.label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Per-assignment completion */}
+            {analytics.perAssignment.length > 0 && (
               <div
                 style={{
-                  width: '2.75rem',
-                  height: '2.75rem',
-                  borderRadius: '0.625rem',
-                  backgroundColor: 'var(--color-surface-container)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '1rem',
+                  backgroundColor: 'var(--color-surface-container-lowest)',
+                  borderRadius: '0.75rem',
+                  border: '1px solid var(--color-outline-variant)',
+                  marginBottom: '1.5rem',
+                  overflow: 'hidden',
                 }}
               >
-                {card.icon}
+                <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--color-outline-variant)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <BarChart3 size={18} color="var(--color-primary)" />
+                  <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-on-surface)' }}>Completion by Assignment</span>
+                </div>
+                <div style={{ padding: '1rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {analytics.perAssignment.map((a) => (
+                    <div key={a.assignmentId}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.375rem' }}>
+                        <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-on-surface)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: '0.75rem' }}>
+                          {a.title}
+                        </span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: a.completionRate === 100 ? '#16a34a' : 'var(--color-primary)', flexShrink: 0 }}>
+                          {a.confirmedGroups}/{a.totalGroups} groups · {a.completionRate}%
+                        </span>
+                      </div>
+                      <div style={{ height: '8px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '9999px', overflow: 'hidden' }}>
+                        <div
+                          style={{
+                            height: '100%',
+                            width: `${a.completionRate}%`,
+                            borderRadius: '9999px',
+                            backgroundColor: a.completionRate === 100 ? '#22c55e' : 'var(--color-primary)',
+                            transition: 'width 0.6s ease',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <h3
-                style={{
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  color: 'var(--color-on-surface)',
-                  margin: '0 0 0.375rem',
-                }}
-              >
-                {card.title}
-              </h3>
-              <p
-                style={{
-                  fontSize: '0.875rem',
-                  color: 'var(--color-on-surface-variant)',
-                  margin: 0,
-                  lineHeight: 1.5,
-                }}
-              >
-                {card.desc}
-              </p>
-            </div>
-          ))}
-        </div>
+            )}
 
-        {/* Phase note */}
-        <div
-          style={{
-            marginTop: '2rem',
-            padding: '1rem 1.25rem',
-            borderRadius: '0.625rem',
-            backgroundColor: 'var(--color-secondary-container)',
-            color: 'var(--color-on-secondary-fixed)',
-            fontSize: '0.875rem',
-            border: '1px solid var(--color-secondary-fixed-dim)',
-          }}
-        >
-          🚧 <strong>Phase 8 coming soon</strong> — Full admin panel with live analytics, group management, and assignment creation tools.
-        </div>
-      </main>
-    </div>
+            {/* Per-group completion */}
+            {analytics.perGroup.length > 0 && (
+              <div
+                style={{
+                  backgroundColor: 'var(--color-surface-container-lowest)',
+                  borderRadius: '0.75rem',
+                  border: '1px solid var(--color-outline-variant)',
+                  marginBottom: '1.5rem',
+                  overflow: 'hidden',
+                }}
+              >
+                <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--color-outline-variant)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Users size={18} color="var(--color-secondary)" />
+                  <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-on-surface)' }}>Completion by Group</span>
+                </div>
+                <div style={{ padding: '1rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+                  {analytics.perGroup.map((g) => (
+                    <div key={g.groupId}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.375rem' }}>
+                        <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-on-surface)' }}>{g.name}</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: g.completionRate === 100 ? '#16a34a' : 'var(--color-secondary)', flexShrink: 0 }}>
+                          {g.confirmedAssignments}/{g.totalAssignments} · {g.completionRate}%
+                        </span>
+                      </div>
+                      <div style={{ height: '6px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '9999px', overflow: 'hidden' }}>
+                        <div
+                          style={{
+                            height: '100%',
+                            width: `${g.completionRate}%`,
+                            borderRadius: '9999px',
+                            backgroundColor: g.completionRate === 100 ? '#22c55e' : 'var(--color-secondary)',
+                            transition: 'width 0.6s ease',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Quick-nav cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+              {[
+                { icon: <BookOpen size={22} color="var(--color-primary)" />, title: 'Manage Assignments', desc: 'Create, edit and assign work.', to: '/admin/assignments', id: 'card-admin-assignments' },
+                { icon: <ClipboardList size={22} color="#d97706" />, title: 'Submission Tracker', desc: 'Track all submission statuses.', to: '/admin/submissions', id: 'card-admin-submissions' },
+                { icon: <Users size={22} color="var(--color-secondary)" />, title: 'Group Directory', desc: 'View all student groups.', to: '/admin/groups', id: 'card-admin-groups' },
+              ].map((card) => (
+                <div
+                  key={card.id}
+                  id={card.id}
+                  onClick={() => navigate(card.to)}
+                  style={{
+                    backgroundColor: 'var(--color-surface-container-lowest)',
+                    borderRadius: '0.75rem',
+                    padding: '1.25rem',
+                    border: '1px solid var(--color-outline-variant)',
+                    cursor: 'pointer',
+                    transition: 'box-shadow 0.15s, transform 0.15s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 4px 20px rgba(53,37,205,0.1)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)' }}
+                >
+                  <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.625rem', backgroundColor: 'var(--color-surface-container)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.875rem' }}>
+                    {card.icon}
+                  </div>
+                  <h3 style={{ margin: '0 0 0.375rem', fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-on-surface)' }}>{card.title}</h3>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-on-surface-variant)', lineHeight: 1.5 }}>{card.desc}</p>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : null}
+      </div>
+    </Sidebar>
   )
 }

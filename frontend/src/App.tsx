@@ -5,6 +5,12 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import StudentDashboard from './pages/StudentDashboard'
 import AdminDashboard from './pages/AdminDashboard'
+import GroupManagement from './pages/student/GroupManagement'
+import AssignmentList from './pages/student/AssignmentList'
+import AssignmentDetail from './pages/student/AssignmentDetail'
+import ManageAssignments from './pages/admin/ManageAssignments'
+import SubmissionTracker from './pages/admin/SubmissionTracker'
+import AdminGroups from './pages/admin/AdminGroups'
 
 // Root redirect: authenticated users go to their dashboard, others go to login
 function RootRedirect() {
@@ -29,11 +35,17 @@ export default function App() {
       {/* Protected: student only */}
       <Route element={<ProtectedRoute allowedRoles={['student']} />}>
         <Route path="/student/dashboard" element={<StudentDashboard />} />
+        <Route path="/student/groups" element={<GroupManagement />} />
+        <Route path="/student/assignments" element={<AssignmentList />} />
+        <Route path="/student/assignments/:id" element={<AssignmentDetail />} />
       </Route>
 
       {/* Protected: admin only */}
       <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/assignments" element={<ManageAssignments />} />
+        <Route path="/admin/submissions" element={<SubmissionTracker />} />
+        <Route path="/admin/groups" element={<AdminGroups />} />
       </Route>
 
       {/* Root + catch-all → smart redirect */}
