@@ -7,3 +7,7 @@ build/
 .env.local
 .env.*.local
 backend/.env
+
+# Planning docs (internal only)
+plan.md
+phases.md
