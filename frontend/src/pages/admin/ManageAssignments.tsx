@@ -64,6 +64,8 @@ export default function ManageAssignments() {
   const [deleteTarget, setDeleteTarget] = useState<Assignment | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 8
 
   const load = useCallback(async () => {
     try {
@@ -73,6 +75,7 @@ export default function ManageAssignments() {
       ])
       setAssignments(aRes.data.assignments)
       setGroups(gRes.data.groups)
+      setPage(1)
     } catch {
       setError('Failed to load data.')
     } finally {
@@ -243,8 +246,12 @@ export default function ManageAssignments() {
             </button>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {assignments.map((a) => {
+          (() => {
+            const totalPages = Math.max(1, Math.ceil(assignments.length / PAGE_SIZE))
+            const paged = assignments.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {paged.map((a) => {
               const due = new Date(a.due_date)
               const isOverdue = due < new Date()
               return (
@@ -317,8 +324,24 @@ export default function ManageAssignments() {
                   </div>
                 </div>
               )
-            })}
-          </div>
+                })}
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.75rem', padding: '0.75rem 1rem', backgroundColor: 'var(--color-surface-container-lowest)', borderRadius: '0.75rem', border: '1px solid var(--color-outline-variant)' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--color-on-surface-variant)' }}>
+                      Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, assignments.length)} of {assignments.length}
+                    </span>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button id="btn-prev-page" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: '0.375rem 0.875rem', borderRadius: '0.5rem', border: '1px solid var(--color-outline-variant)', backgroundColor: 'transparent', color: 'var(--color-on-surface)', fontSize: '0.8rem', fontWeight: 500, cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.5 : 1 }}>← Prev</button>
+                      <span style={{ display: 'flex', alignItems: 'center', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-primary)', padding: '0 0.5rem' }}>{page} / {totalPages}</span>
+                      <button id="btn-next-page" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} style={{ padding: '0.375rem 0.875rem', borderRadius: '0.5rem', border: '1px solid var(--color-outline-variant)', backgroundColor: 'transparent', color: 'var(--color-on-surface)', fontSize: '0.8rem', fontWeight: 500, cursor: page === totalPages ? 'not-allowed' : 'pointer', opacity: page === totalPages ? 0.5 : 1 }}>Next →</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })()
         )}
       </div>
 

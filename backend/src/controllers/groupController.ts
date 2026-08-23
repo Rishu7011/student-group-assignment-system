@@ -182,3 +182,72 @@ export async function getGroupById(req: Request, res: Response): Promise<void> {
     res.status(500).json({ error: 'Internal server error' });
   }
 }
+// DELETE /api/groups/:id/members/:userId  (must be group creator)
+export async function deleteMember(req: Request, res: Response): Promise<void> {
+  const groupId = parseInt(req.params.id, 10);
+  const targetUserId = parseInt(req.params.userId, 10);
+
+  if (isNaN(groupId) || isNaN(targetUserId)) {
+    res.status(400).json({ error: 'Invalid group or user ID' }); return;
+  }
+
+  try {
+    // Verify group exists and caller is the creator
+    const groupRes = await pool.query(`SELECT * FROM groups WHERE id = $1`, [groupId]);
+    if (groupRes.rows.length === 0) {
+      res.status(404).json({ error: 'Group not found' }); return;
+    }
+    if (groupRes.rows[0].created_by !== req.user!.id) {
+      res.status(403).json({ error: 'Only the group creator can remove members' }); return;
+    }
+    if (targetUserId === req.user!.id) {
+      res.status(400).json({ error: 'You cannot remove yourself as the creator. Delete the group instead.' }); return;
+    }
+
+    const del = await pool.query(
+      `DELETE FROM group_members WHERE group_id = $1 AND user_id = $2 RETURNING id`,
+      [groupId, targetUserId]
+    );
+    if (del.rows.length === 0) {
+      res.status(404).json({ error: 'User is not a member of this group' }); return;
+    }
+    res.status(200).json({ message: 'Member removed successfully' });
+  } catch (err) {
+    console.error('deleteMember error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+// DELETE /api/groups/:id  (must be group creator)
+export async function deleteGroup(req: Request, res: Response): Promise<void> {
+  const groupId = parseInt(req.params.id, 10);
+  if (isNaN(groupId)) {
+    res.status(400).json({ error: 'Invalid group ID' }); return;
+  }
+
+  const client = await pool.connect();
+  try {
+    const groupRes = await client.query(`SELECT * FROM groups WHERE id = $1`, [groupId]);
+    if (groupRes.rows.length === 0) {
+      res.status(404).json({ error: 'Group not found' }); return;
+    }
+    if (groupRes.rows[0].created_by !== req.user!.id) {
+      res.status(403).json({ error: 'Only the group creator can delete the group' }); return;
+    }
+
+    await client.query('BEGIN');
+    await client.query(`DELETE FROM submissions WHERE group_id = $1`, [groupId]);
+    await client.query(`DELETE FROM assignment_groups WHERE group_id = $1`, [groupId]);
+    await client.query(`DELETE FROM group_members WHERE group_id = $1`, [groupId]);
+    await client.query(`DELETE FROM groups WHERE id = $1`, [groupId]);
+    await client.query('COMMIT');
+
+    res.status(200).json({ message: 'Group deleted successfully' });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('deleteGroup error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  } finally {
+    client.release();
+  }
+}
