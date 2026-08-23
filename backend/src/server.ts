@@ -2,11 +2,13 @@ import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
 
+import path from 'path';
 import authRoutes from './routes/authRoutes';
 import groupRoutes from './routes/groupRoutes';
 import assignmentRoutes from './routes/assignmentRoutes';
 import submissionRoutes from './routes/submissionRoutes';
 import analyticsRoutes from './routes/analyticsRoutes';
+import uploadRoutes from './routes/uploadRoutes';
 import { seedSystemAdmin } from './scripts/seedAdmin';
 
 const app = express();
@@ -14,6 +16,9 @@ const app = express();
 // ── Middleware ──────────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
+
+// ── Static Files (Uploads) ──────────────────────────────────────────────────
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // ── Health check ────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
@@ -26,6 +31,7 @@ app.use('/api/groups', groupRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // ── 404 handler ─────────────────────────────────────────────────────────────
 app.use((_req, res) => {

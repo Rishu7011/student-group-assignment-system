@@ -39,6 +39,8 @@ services:
       ADMIN_NAME: System Administrator
     ports:
       - "5001:5001"
+    volumes:
+      - uploads_data:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -72,6 +74,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  uploads_data:
     driver: local
 
 networks:

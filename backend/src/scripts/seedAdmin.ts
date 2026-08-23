@@ -16,18 +16,20 @@ import pool from '../config/db';
 const SALT_ROUNDS = 12;
 
 export async function seedSystemAdmin(): Promise<void> {
-  const email    = process.env.SYSADMIN_EMAIL;
-  const password = process.env.SYSADMIN_PASSWORD;
-  const name     = process.env.SYSADMIN_NAME ?? 'System Administrator';
-
-  if (!email || !password) {
-    console.warn(
-      '⚠️  SYSADMIN_EMAIL or SYSADMIN_PASSWORD not set — skipping system admin seed.'
-    );
-    return;
-  }
+  const email    = process.env.SYSADMIN_EMAIL || process.env.ADMIN_EMAIL || 'sysadmin@groupsync.internal';
+  const password = process.env.SYSADMIN_PASSWORD || process.env.ADMIN_PASSWORD || 'Adm!n@GrpSync#2024';
+  const name     = process.env.SYSADMIN_NAME || process.env.ADMIN_NAME || 'System Administrator';
 
   try {
+    // Ensure submission columns exist
+    await pool.query(`
+      ALTER TABLE submissions ADD COLUMN IF NOT EXISTS file_url TEXT;
+      ALTER TABLE submissions ADD COLUMN IF NOT EXISTS review_status VARCHAR(20) DEFAULT 'pending';
+      ALTER TABLE submissions ADD COLUMN IF NOT EXISTS review_feedback TEXT;
+      ALTER TABLE submissions ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
+      ALTER TABLE submissions ADD COLUMN IF NOT EXISTS reviewed_by INTEGER REFERENCES users(id) ON DELETE SET NULL;
+    `);
+
     // Check if the account already exists
     const existing = await pool.query<{ id: number; role: string }>(
       'SELECT id, role FROM users WHERE email = $1',

@@ -38,6 +38,11 @@ interface GroupSubmission {
   status: string
   confirmed_at: string | null
   confirmed_by_name: string | null
+  file_url: string | null
+  review_status?: 'pending' | 'accepted' | 'rejected' | null
+  review_feedback?: string | null
+  reviewed_at?: string | null
+  reviewed_by_name?: string | null
 }
 
 interface Group {
@@ -103,7 +108,7 @@ export default function AssignmentDetail() {
       if (existing) {
         return prev.map((s) => s.assignment_id === Number(id) ? { ...s, status: newStatus } : s)
       }
-      return [...prev, { assignment_id: Number(id), title: assignment?.title ?? '', due_date: assignment?.due_date ?? '', status: newStatus, confirmed_at: null, confirmed_by_name: null }]
+      return [...prev, { assignment_id: Number(id), title: assignment?.title ?? '', due_date: assignment?.due_date ?? '', status: newStatus, confirmed_at: null, confirmed_by_name: null, file_url: null }]
     })
   }
 
@@ -325,11 +330,60 @@ export default function AssignmentDetail() {
               </div>
 
               {/* Status summary */}
-              {currentStatus === 'confirmed' && thisSubmission?.confirmed_at && (
-                <div style={{ padding: '0.75rem 1rem', borderRadius: '0.625rem', backgroundColor: '#dcfce7', border: '1px solid #bbf7d0', marginBottom: '1rem', fontSize: '0.875rem', color: '#15803d', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <CheckCircle2 size={16} />
-                  Confirmed on {new Date(thisSubmission.confirmed_at).toLocaleString()}
-                  {thisSubmission.confirmed_by_name && ` by ${thisSubmission.confirmed_by_name}`}
+              {currentStatus === 'confirmed' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                  {/* Professor Review Verdict */}
+                  {thisSubmission?.review_status === 'accepted' ? (
+                    <div style={{ padding: '0.875rem 1rem', borderRadius: '0.625rem', backgroundColor: '#dcfce7', border: '1.5px solid #86efac', color: '#15803d' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.95rem' }}>
+                        <CheckCircle2 size={18} />
+                        Graded: Done / Accepted ✓
+                      </div>
+                      {thisSubmission.review_feedback && (
+                        <p style={{ margin: '0.35rem 0 0', fontSize: '0.85rem', color: '#166534' }}>
+                          Professor feedback: "{thisSubmission.review_feedback}"
+                        </p>
+                      )}
+                    </div>
+                  ) : thisSubmission?.review_status === 'rejected' ? (
+                    <div style={{ padding: '0.875rem 1rem', borderRadius: '0.625rem', backgroundColor: '#fee2e2', border: '1.5px solid #fca5a5', color: '#991b1b' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.95rem' }}>
+                        <AlertTriangle size={18} />
+                        Submission Rejected by Professor
+                      </div>
+                      <p style={{ margin: '0.35rem 0 0', fontSize: '0.85rem', color: '#7f1d1d' }}>
+                        Reason: "{thisSubmission.review_feedback || 'Please review requirements and resubmit'}"
+                      </p>
+                      <p style={{ margin: '0.5rem 0 0', fontSize: '0.8rem', color: '#991b1b', fontWeight: 600 }}>
+                        Your group can upload a revised document below and resubmit.
+                      </p>
+                    </div>
+                  ) : (
+                    <div style={{ padding: '0.75rem 1rem', borderRadius: '0.625rem', backgroundColor: '#fef3c7', border: '1px solid #fde68a', color: '#92400e', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Clock size={16} />
+                      Submitted & locked — Awaiting professor review
+                    </div>
+                  )}
+
+                  {/* Submission details */}
+                  {thisSubmission?.confirmed_at && (
+                    <div style={{ padding: '0.625rem 0.875rem', borderRadius: '0.5rem', backgroundColor: 'var(--color-surface-container)', fontSize: '0.82rem', color: 'var(--color-on-surface-variant)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <div>
+                        Confirmed {new Date(thisSubmission.confirmed_at).toLocaleDateString()}
+                        {thisSubmission.confirmed_by_name && ` by ${thisSubmission.confirmed_by_name}`}
+                      </div>
+                      {thisSubmission.file_url && (
+                        <a
+                          href={thisSubmission.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'underline' }}
+                        >
+                          📄 View submitted file
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -338,9 +392,9 @@ export default function AssignmentDetail() {
                 <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-on-surface-variant)' }}>
                   You must be in a group to submit. <button onClick={() => navigate('/student/groups')} style={{ color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Create a group →</button>
                 </p>
-              ) : currentStatus === 'confirmed' ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#15803d', fontWeight: 600, fontSize: '0.875rem' }}>
-                  <CheckCircle2 size={18} /> Submission locked and complete
+              ) : currentStatus === 'confirmed' && thisSubmission?.review_status !== 'rejected' ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: thisSubmission?.review_status === 'accepted' ? '#15803d' : 'var(--color-on-surface-variant)', fontWeight: 600, fontSize: '0.875rem' }}>
+                  <CheckCircle2 size={18} /> {thisSubmission?.review_status === 'accepted' ? 'Assignment marked as completed' : 'Submission locked'}
                 </div>
               ) : (
                 <button
@@ -352,7 +406,7 @@ export default function AssignmentDetail() {
                     gap: '0.5rem',
                     padding: '0.75rem 1.5rem',
                     borderRadius: '0.625rem',
-                    backgroundColor: 'var(--color-primary)',
+                    backgroundColor: thisSubmission?.review_status === 'rejected' ? '#dc2626' : 'var(--color-primary)',
                     color: 'white',
                     border: 'none',
                     fontSize: '0.9rem',
@@ -364,7 +418,11 @@ export default function AssignmentDetail() {
                   onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
                 >
                   <Send size={16} />
-                  {currentStatus === 'pending_confirmation' ? 'Continue Submission (Step 2)' : 'Start Submission'}
+                  {thisSubmission?.review_status === 'rejected'
+                    ? 'Resubmit Revision (Step 1 & 2)'
+                    : currentStatus === 'pending_confirmation'
+                    ? 'Continue Submission (Step 2)'
+                    : 'Start Submission'}
                 </button>
               )}
             </div>

@@ -60,6 +60,13 @@ CREATE TABLE IF NOT EXISTS submissions (
                      DEFAULT 'pending',
   confirmed_by     INTEGER      REFERENCES users(id) ON DELETE SET NULL,
   confirmed_at     TIMESTAMPTZ,
+  file_url         TEXT,
+  review_status    VARCHAR(20)  NOT NULL
+                     CHECK (review_status IN ('pending', 'accepted', 'rejected'))
+                     DEFAULT 'pending',
+  review_feedback  TEXT,
+  reviewed_at      TIMESTAMPTZ,
+  reviewed_by      INTEGER      REFERENCES users(id) ON DELETE SET NULL,
   created_at       TIMESTAMPTZ  NOT NULL DEFAULT now(),
   UNIQUE (assignment_id, group_id)
 );

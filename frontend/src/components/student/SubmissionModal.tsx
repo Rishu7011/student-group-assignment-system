@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import apiClient from '../../api/client'
 import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
-import { CheckCircle2, Upload, AlertTriangle, X, Loader2, Check, Lock } from 'lucide-react'
+import { CheckCircle2, Upload, AlertTriangle, X, Loader2, Check, Lock, FileText, Paperclip } from 'lucide-react'
 
 type SubmissionStatus = 'pending' | 'pending_confirmation' | 'confirmed'
 
@@ -28,8 +28,10 @@ export default function SubmissionModal({
   onStatusChange,
 }: SubmissionModalProps) {
   const [loading, setLoading] = useState(false)
+  const [uploadingFile, setUploadingFile] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [uploadConfirmed, setUploadConfirmed] = useState(false)
+  const [uploadedFile, setUploadedFile] = useState<{ filename: string; file_url: string; size: number } | null>(null)
   const [finalChecks, setFinalChecks] = useState({
     correct_file: false,
     team_reviewed: false,
@@ -55,11 +57,42 @@ export default function SubmissionModal({
 
   const allFinalChecked = Object.values(finalChecks).every(Boolean)
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingFile(true)
+    setError(null)
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const res = await apiClient.post<{ file_url: string; filename: string; size: number }>(
+        '/upload',
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      )
+      setUploadedFile({
+        filename: res.data.filename,
+        file_url: res.data.file_url,
+        size: res.data.size,
+      })
+      setUploadConfirmed(true)
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to upload file. Please try again.')
+    } finally {
+      setUploadingFile(false)
+    }
+  }
+
   const handleStep1 = async () => {
     setLoading(true)
     setError(null)
     try {
-      await apiClient.post(`/submissions/${assignmentId}/step1`, { group_id: groupId })
+      await apiClient.post(`/submissions/${assignmentId}/step1`, {
+        group_id: groupId,
+        file_url: uploadedFile?.file_url,
+      })
       onStatusChange('pending_confirmation')
     } catch (err: any) {
       const msg = err.response?.data?.error ?? 'Failed to confirm upload. Please try again.'
@@ -73,7 +106,10 @@ export default function SubmissionModal({
     setLoading(true)
     setError(null)
     try {
-      await apiClient.post(`/submissions/${assignmentId}/step2`, { group_id: groupId })
+      await apiClient.post(`/submissions/${assignmentId}/step2`, {
+        group_id: groupId,
+        file_url: uploadedFile?.file_url,
+      })
       onStatusChange('confirmed')
       try {
         confetti({
@@ -277,7 +313,7 @@ export default function SubmissionModal({
                       </div>
                       <div>
                         <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--color-on-surface)' }}>
-                          Confirm OneDrive Upload
+                          Upload & Confirm Submission
                         </h3>
                         <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-on-surface-variant)' }}>
                           Step 1 of 2
@@ -285,16 +321,84 @@ export default function SubmissionModal({
                       </div>
                     </div>
 
-                    <p style={{ fontSize: '0.875rem', color: 'var(--color-on-surface-variant)', marginBottom: '1.25rem', lineHeight: 1.6 }}>
-                      Before proceeding, make sure your group's work has been uploaded to the designated OneDrive folder. This cannot be undone after Step 2.
-                    </p>
+                    {/* File Upload Box */}
+                    <div
+                      style={{
+                        padding: '1rem',
+                        borderRadius: '0.75rem',
+                        border: '2px dashed var(--color-outline-variant)',
+                        backgroundColor: 'var(--color-surface-container)',
+                        textAlign: 'center',
+                        marginBottom: '1rem',
+                      }}
+                    >
+                      <input
+                        type="file"
+                        id="submission-file-input"
+                        accept=".pdf,.doc,.docx,image/*"
+                        onChange={handleFileUpload}
+                        style={{ display: 'none' }}
+                      />
+
+                      {uploadingFile ? (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.5rem 0', color: 'var(--color-primary)' }}>
+                          <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
+                          <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Uploading document...</span>
+                        </div>
+                      ) : uploadedFile ? (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#dcfce7', border: '1px solid #bbf7d0', padding: '0.625rem 0.875rem', borderRadius: '0.5rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', overflow: 'hidden' }}>
+                            <FileText size={18} color="#16a34a" />
+                            <div style={{ textAlign: 'left', overflow: 'hidden' }}>
+                              <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 600, color: '#15803d', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', maxWidth: '240px' }}>
+                                {uploadedFile.filename}
+                              </p>
+                              <p style={{ margin: 0, fontSize: '0.7rem', color: '#16a34a' }}>
+                                {(uploadedFile.size / (1024 * 1024)).toFixed(2)} MB • Ready to submit
+                              </p>
+                            </div>
+                          </div>
+                          <label
+                            htmlFor="submission-file-input"
+                            style={{ fontSize: '0.75rem', color: '#15803d', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer' }}
+                          >
+                            Change
+                          </label>
+                        </div>
+                      ) : (
+                        <div>
+                          <label
+                            htmlFor="submission-file-input"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.4rem',
+                              padding: '0.5rem 1rem',
+                              borderRadius: '0.5rem',
+                              backgroundColor: 'var(--color-surface-container-lowest)',
+                              border: '1px solid var(--color-outline-variant)',
+                              fontSize: '0.82rem',
+                              fontWeight: 600,
+                              color: 'var(--color-primary)',
+                              cursor: 'pointer',
+                              marginBottom: '0.35rem',
+                            }}
+                          >
+                            <Paperclip size={15} /> Choose PDF / Document
+                          </label>
+                          <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--color-on-surface-variant)' }}>
+                            Supports PDF, DOC, DOCX, PNG, JPG (up to 15MB)
+                          </p>
+                        </div>
+                      )}
+                    </div>
 
                     <label
                       style={{
                         display: 'flex',
                         alignItems: 'flex-start',
                         gap: '0.75rem',
-                        padding: '0.875rem 1rem',
+                        padding: '0.75rem 1rem',
                         borderRadius: '0.625rem',
                         border: `2px solid ${uploadConfirmed ? 'var(--color-primary)' : 'var(--color-outline-variant)'}`,
                         backgroundColor: uploadConfirmed ? 'var(--color-primary-fixed)' : 'var(--color-surface-container)',
@@ -309,25 +413,25 @@ export default function SubmissionModal({
                         onChange={(e) => setUploadConfirmed(e.target.checked)}
                         style={{ width: '16px', height: '16px', marginTop: '2px', accentColor: 'var(--color-primary)', cursor: 'pointer' }}
                       />
-                      <span style={{ fontSize: '0.875rem', color: 'var(--color-on-surface)', lineHeight: 1.5 }}>
-                        I confirm that my group's file has been uploaded to the shared OneDrive folder and is accessible.
+                      <span style={{ fontSize: '0.82rem', color: 'var(--color-on-surface)', lineHeight: 1.5 }}>
+                        I confirm that our group's submission file is ready and uploaded to OneDrive / in-app.
                       </span>
                     </label>
 
                     <button
                       id="btn-step1-confirm"
                       onClick={handleStep1}
-                      disabled={!uploadConfirmed || loading}
+                      disabled={!uploadConfirmed || loading || uploadingFile}
                       style={{
                         width: '100%',
                         padding: '0.75rem',
                         borderRadius: '0.625rem',
                         border: 'none',
-                        backgroundColor: !uploadConfirmed || loading ? 'var(--color-surface-container-high)' : 'var(--color-primary)',
-                        color: !uploadConfirmed || loading ? 'var(--color-on-surface-variant)' : 'white',
+                        backgroundColor: !uploadConfirmed || loading || uploadingFile ? 'var(--color-surface-container-high)' : 'var(--color-primary)',
+                        color: !uploadConfirmed || loading || uploadingFile ? 'var(--color-on-surface-variant)' : 'white',
                         fontSize: '0.9rem',
                         fontWeight: 600,
-                        cursor: !uploadConfirmed || loading ? 'not-allowed' : 'pointer',
+                        cursor: !uploadConfirmed || loading || uploadingFile ? 'not-allowed' : 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -358,6 +462,13 @@ export default function SubmissionModal({
                       </div>
                     </div>
 
+                    {uploadedFile && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', backgroundColor: 'var(--color-surface-container)', borderRadius: '0.5rem', marginBottom: '0.75rem', fontSize: '0.78rem', color: 'var(--color-on-surface)' }}>
+                        <FileText size={14} color="var(--color-primary)" />
+                        <span style={{ fontWeight: 600 }}>Attached file:</span> {uploadedFile.filename}
+                      </div>
+                    )}
+
                     <div
                       style={{
                         padding: '0.75rem 1rem',
@@ -375,7 +486,7 @@ export default function SubmissionModal({
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginBottom: '1.25rem' }}>
                       {[
-                        { key: 'correct_file', label: 'The correct and final version of our work is uploaded to OneDrive.' },
+                        { key: 'correct_file', label: 'The correct and final version of our work is attached and uploaded.' },
                         { key: 'team_reviewed', label: 'All team members have reviewed the submission.' },
                         { key: 'no_more_changes', label: 'We understand this submission cannot be changed after confirmation.' },
                       ].map(({ key, label }) => {
@@ -464,25 +575,42 @@ export default function SubmissionModal({
                     <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.25rem', fontWeight: 700, color: '#15803d' }}>
                       Submission Confirmed!
                     </h3>
-                    <p style={{ margin: '0 0 1.5rem', fontSize: '0.875rem', color: 'var(--color-on-surface-variant)', lineHeight: 1.6 }}>
-                      Your group's submission for <strong>{assignmentTitle}</strong> has been successfully locked in. No further changes can be made.
+                    <p style={{ margin: '0 0 1.25rem', fontSize: '0.875rem', color: 'var(--color-on-surface-variant)', lineHeight: 1.6 }}>
+                      Your group's submission for <strong>{assignmentTitle}</strong> has been successfully locked in.
                     </p>
-                    <button
-                      onClick={onClose}
-                      style={{
-                        padding: '0.625rem 1.75rem',
-                        borderRadius: '0.625rem',
-                        border: 'none',
-                        backgroundColor: 'var(--color-primary)',
-                        color: 'white',
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 12px rgba(53, 37, 205, 0.25)',
-                      }}
-                    >
-                      Close
-                    </button>
+
+                    {uploadedFile && (
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', backgroundColor: 'var(--color-surface-container)', borderRadius: '0.5rem', marginBottom: '1.25rem' }}>
+                        <FileText size={16} color="var(--color-primary)" />
+                        <a
+                          href={uploadedFile.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' }}
+                        >
+                          View Submitted File ({uploadedFile.filename})
+                        </a>
+                      </div>
+                    )}
+
+                    <div>
+                      <button
+                        onClick={onClose}
+                        style={{
+                          padding: '0.625rem 1.75rem',
+                          borderRadius: '0.625rem',
+                          border: 'none',
+                          backgroundColor: 'var(--color-primary)',
+                          color: 'white',
+                          fontSize: '0.875rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          boxShadow: '0 4px 12px rgba(53, 37, 205, 0.25)',
+                        }}
+                      >
+                        Close
+                      </button>
+                    </div>
                   </motion.div>
                 )}
               </div>
