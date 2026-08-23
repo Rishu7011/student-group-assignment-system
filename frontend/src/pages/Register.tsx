@@ -1,5 +1,6 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import {
   User as UserIcon,
   Mail,
@@ -30,21 +31,22 @@ export default function Register() {
   const navigate = useNavigate()
   const { register } = useAuth()
 
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const nameRef = useRef<HTMLInputElement>(null)
+  const emailRef = useRef<HTMLInputElement>(null)
+  const passwordRef = useRef<HTMLInputElement>(null)
+
   const [error, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
 
-  const validate = () => {
+  const validate = (nameVal: string, emailVal: string, passwordVal: string) => {
     const errs: Record<string, string> = {}
-    if (!name.trim()) errs.name = 'Full name is required.'
-    if (!email.trim()) errs.email = 'Email is required.'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    if (!nameVal.trim()) errs.name = 'Full name is required.'
+    if (!emailVal.trim()) errs.email = 'Email is required.'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal.trim()))
       errs.email = 'Enter a valid email address.'
-    if (!password) errs.password = 'Password is required.'
-    else if (password.length < 6)
+    if (!passwordVal) errs.password = 'Password is required.'
+    else if (passwordVal.length < 6)
       errs.password = 'Password must be at least 6 characters.'
     return errs
   }
@@ -52,14 +54,19 @@ export default function Register() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError('')
-    const errs = validate()
+
+    const nameVal = nameRef.current?.value.trim() ?? ''
+    const emailVal = emailRef.current?.value.trim() ?? ''
+    const passwordVal = passwordRef.current?.value ?? ''
+
+    const errs = validate(nameVal, emailVal, passwordVal)
     setFieldErrors(errs)
     if (Object.keys(errs).length > 0) return
 
     setIsLoading(true)
     try {
-      await register(name.trim(), email.trim(), password)
-      navigate('/', { replace: true })
+      await register(nameVal, emailVal, passwordVal)
+      navigate('/student/dashboard', { replace: true })
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { error?: string } } })?.response?.data
@@ -91,8 +98,12 @@ export default function Register() {
         fontFamily: 'var(--font-sans)',
       }}
     >
-      <div style={{ width: '100%', maxWidth: '440px' }}>
-
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        style={{ width: '100%', maxWidth: '440px' }}
+      >
         {/* Logo & Brand */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div
@@ -213,11 +224,10 @@ export default function Register() {
                   <UserIcon size={16} />
                 </div>
                 <input
+                  ref={nameRef}
                   id="reg-name"
                   type="text"
                   autoComplete="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
                   placeholder="Alex Johnson"
                   disabled={isLoading}
                   style={{
@@ -265,11 +275,10 @@ export default function Register() {
                   <Mail size={16} />
                 </div>
                 <input
+                  ref={emailRef}
                   id="reg-email"
                   type="email"
                   autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@university.edu"
                   disabled={isLoading}
                   style={{
@@ -317,11 +326,10 @@ export default function Register() {
                   <Lock size={16} />
                 </div>
                 <input
+                  ref={passwordRef}
                   id="reg-password"
                   type="password"
                   autoComplete="new-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="At least 6 characters"
                   disabled={isLoading}
                   style={{
@@ -410,7 +418,7 @@ export default function Register() {
             Sign in
           </Link>
         </p>
-      </div>
+      </motion.div>
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }

@@ -1,6 +1,7 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import apiClient from '../../api/client'
 import Sidebar from '../../components/Sidebar'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus,
   Edit2,
@@ -32,24 +33,6 @@ interface Group {
   member_count: number
 }
 
-interface FormData {
-  title: string
-  description: string
-  due_date: string
-  onedrive_link: string
-  assigned_to_type: 'all' | 'group'
-  group_ids: number[]
-}
-
-const defaultForm: FormData = {
-  title: '',
-  description: '',
-  due_date: '',
-  onedrive_link: '',
-  assigned_to_type: 'all',
-  group_ids: [],
-}
-
 export default function ManageAssignments() {
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [groups, setGroups] = useState<Group[]>([])
@@ -57,7 +40,15 @@ export default function ManageAssignments() {
   const [error, setError] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Assignment | null>(null)
-  const [form, setForm] = useState<FormData>(defaultForm)
+
+  // Form input refs
+  const titleRef = useRef<HTMLInputElement>(null)
+  const descRef = useRef<HTMLTextAreaElement>(null)
+  const dueDateRef = useRef<HTMLInputElement>(null)
+  const onedriveRef = useRef<HTMLInputElement>(null)
+  const [assignedType, setAssignedType] = useState<'all' | 'group'>('all')
+  const [selectedGroupIds, setSelectedGroupIds] = useState<number[]>([])
+
   const [formLoading, setFormLoading] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [formSuccess, setFormSuccess] = useState<string | null>(null)
@@ -87,7 +78,8 @@ export default function ManageAssignments() {
 
   function openCreate() {
     setEditing(null)
-    setForm(defaultForm)
+    setAssignedType('all')
+    setSelectedGroupIds([])
     setFormError(null)
     setFormSuccess(null)
     setModalOpen(true)
@@ -95,14 +87,8 @@ export default function ManageAssignments() {
 
   function openEdit(a: Assignment) {
     setEditing(a)
-    setForm({
-      title: a.title,
-      description: a.description ?? '',
-      due_date: a.due_date.split('T')[0],
-      onedrive_link: a.onedrive_link,
-      assigned_to_type: a.assigned_to_type,
-      group_ids: [],
-    })
+    setAssignedType(a.assigned_to_type)
+    setSelectedGroupIds([])
     setFormError(null)
     setFormSuccess(null)
     setModalOpen(true)
@@ -141,21 +127,23 @@ export default function ManageAssignments() {
   }
 
   function toggleGroupId(id: number) {
-    setForm((prev) => ({
-      ...prev,
-      group_ids: prev.group_ids.includes(id)
-        ? prev.group_ids.filter((g) => g !== id)
-        : [...prev.group_ids, id],
-    }))
+    setSelectedGroupIds((prev) =>
+      prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]
+    )
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.title.trim() || !form.due_date || !form.onedrive_link.trim()) {
+    const titleVal = titleRef.current?.value.trim() ?? ''
+    const descVal = descRef.current?.value.trim() ?? ''
+    const dueDateVal = dueDateRef.current?.value ?? ''
+    const onedriveVal = onedriveRef.current?.value.trim() ?? ''
+
+    if (!titleVal || !dueDateVal || !onedriveVal) {
       setFormError('Title, due date, and OneDrive link are required.')
       return
     }
-    if (form.assigned_to_type === 'group' && form.group_ids.length === 0) {
+    if (assignedType === 'group' && selectedGroupIds.length === 0) {
       setFormError('Select at least one group.')
       return
     }
@@ -164,12 +152,12 @@ export default function ManageAssignments() {
     setFormError(null)
 
     const payload = {
-      title: form.title.trim(),
-      description: form.description.trim() || undefined,
-      due_date: form.due_date,
-      onedrive_link: form.onedrive_link.trim(),
-      assigned_to_type: form.assigned_to_type,
-      group_ids: form.assigned_to_type === 'group' ? form.group_ids : undefined,
+      title: titleVal,
+      description: descVal || undefined,
+      due_date: dueDateVal,
+      onedrive_link: onedriveVal,
+      assigned_to_type: assignedType,
+      group_ids: assignedType === 'group' ? selectedGroupIds : undefined,
     }
 
     try {
@@ -181,9 +169,9 @@ export default function ManageAssignments() {
         setFormSuccess('Assignment created successfully!')
       }
       await load()
-      setTimeout(() => closeModal(), 1200)
+      setTimeout(() => { closeModal() }, 1200)
     } catch (err: any) {
-      setFormError(err.response?.data?.error ?? 'Failed to save assignment.')
+      setFormError(err.response?.data?.error ?? 'Operation failed.')
     } finally {
       setFormLoading(false)
     }
@@ -345,166 +333,195 @@ export default function ManageAssignments() {
         )}
       </div>
 
-      {/* ── Modal ─────────────────────────────────────────────────────────────── */}
-      {modalOpen && (
-        <>
-          <div onClick={closeModal} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', zIndex: 50 }} />
-          <div style={{ position: 'fixed', inset: 0, zIndex: 51, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', overflowY: 'auto' }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: 'var(--color-surface-container-lowest)', borderRadius: '1rem', width: '100%', maxWidth: '540px', boxShadow: '0 25px 60px rgba(0,0,0,0.2)', overflow: 'hidden', margin: 'auto' }}>
-              {/* Modal header */}
-              <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--color-outline-variant)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-                  {editing ? <Edit2 size={18} color="var(--color-primary)" /> : <Plus size={18} color="var(--color-primary)" />}
-                  <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--color-on-surface)' }}>
-                    {editing ? 'Edit Assignment' : 'Create Assignment'}
-                  </h2>
-                </div>
-                <button onClick={closeModal} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-on-surface-variant)', display: 'flex' }}>
-                  <X size={20} />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {formError && (
-                  <div style={{ padding: '0.75rem 1rem', borderRadius: '0.5rem', backgroundColor: 'var(--color-error-container)', color: 'var(--color-error)', fontSize: '0.875rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <AlertCircle size={16} /> {formError}
+      {/* ── Create/Edit Modal ────────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {modalOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeModal}
+              style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 50 }}
+            />
+            <div style={{ position: 'fixed', inset: 0, zIndex: 51, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', overflowY: 'auto' }}>
+              <motion.div
+                initial={{ scale: 0.93, opacity: 0, y: 15 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.93, opacity: 0, y: 15 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                onClick={(e) => e.stopPropagation()}
+                style={{ backgroundColor: 'var(--color-surface-container-lowest)', borderRadius: '1rem', width: '100%', maxWidth: '540px', boxShadow: '0 25px 60px rgba(0,0,0,0.25)', overflow: 'hidden', margin: 'auto' }}
+              >
+                {/* Modal header */}
+                <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--color-outline-variant)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                    {editing ? <Edit2 size={18} color="var(--color-primary)" /> : <Plus size={18} color="var(--color-primary)" />}
+                    <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--color-on-surface)' }}>
+                      {editing ? 'Edit Assignment' : 'Create Assignment'}
+                    </h2>
                   </div>
-                )}
-                {formSuccess && (
-                  <div style={{ padding: '0.75rem 1rem', borderRadius: '0.5rem', backgroundColor: '#dcfce7', color: '#15803d', fontSize: '0.875rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <CheckCircle2 size={16} /> {formSuccess}
-                  </div>
-                )}
-
-                {/* Title */}
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', marginBottom: '0.375rem' }}>Title *</label>
-                  <input id="input-title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Assignment title" style={inputStyle} onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)' }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-outline-variant)' }} />
+                  <button onClick={closeModal} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-on-surface-variant)', display: 'flex' }}>
+                    <X size={20} />
+                  </button>
                 </div>
 
-                {/* Description */}
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', marginBottom: '0.375rem' }}>Description</label>
-                  <textarea id="input-description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Optional description..." rows={3} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'var(--font-sans)' }} onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)' }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-outline-variant)' }} />
-                </div>
+                <form onSubmit={handleSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {formError && (
+                    <div style={{ padding: '0.75rem 1rem', borderRadius: '0.5rem', backgroundColor: 'var(--color-error-container)', color: 'var(--color-error)', fontSize: '0.875rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <AlertCircle size={16} /> {formError}
+                    </div>
+                  )}
+                  {formSuccess && (
+                    <div style={{ padding: '0.75rem 1rem', borderRadius: '0.5rem', backgroundColor: '#dcfce7', color: '#15803d', fontSize: '0.875rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <CheckCircle2 size={16} /> {formSuccess}
+                    </div>
+                  )}
 
-                {/* Due date + OneDrive side by side */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
+                  {/* Title */}
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', marginBottom: '0.375rem' }}>Due Date *</label>
-                    <input id="input-due-date" type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} style={inputStyle} onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)' }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-outline-variant)' }} />
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', marginBottom: '0.375rem' }}>Title *</label>
+                    <input ref={titleRef} id="input-title" defaultValue={editing?.title ?? ''} placeholder="Assignment title" style={inputStyle} onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)' }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-outline-variant)' }} />
                   </div>
+
+                  {/* Description */}
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', marginBottom: '0.375rem' }}>Assign To *</label>
-                    <select id="input-assign-type" value={form.assigned_to_type} onChange={(e) => setForm({ ...form, assigned_to_type: e.target.value as 'all' | 'group', group_ids: [] })} style={{ ...inputStyle, cursor: 'pointer' }}>
-                      <option value="all">All Groups</option>
-                      <option value="group">Specific Groups</option>
-                    </select>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', marginBottom: '0.375rem' }}>Description</label>
+                    <textarea ref={descRef} id="input-description" defaultValue={editing?.description ?? ''} placeholder="Optional description..." rows={3} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'var(--font-sans)' }} onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)' }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-outline-variant)' }} />
                   </div>
-                </div>
 
-                {/* OneDrive link */}
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', marginBottom: '0.375rem' }}>OneDrive Link *</label>
-                  <input id="input-onedrive" type="url" value={form.onedrive_link} onChange={(e) => setForm({ ...form, onedrive_link: e.target.value })} placeholder="https://onedrive.live.com/..." style={inputStyle} onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)' }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-outline-variant)' }} />
-                </div>
-
-                {/* Group multi-select */}
-                {form.assigned_to_type === 'group' && (
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', marginBottom: '0.5rem' }}>
-                      Select Groups * <span style={{ fontWeight: 400, color: 'var(--color-on-surface-variant)' }}>({form.group_ids.length} selected)</span>
-                    </label>
-                    <div style={{ maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.375rem', padding: '0.5rem', backgroundColor: 'var(--color-surface-container)', borderRadius: '0.5rem', border: '1.5px solid var(--color-outline-variant)' }}>
-                      {groups.length === 0 ? (
-                        <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-on-surface-variant)', textAlign: 'center', padding: '1rem' }}>No groups found</p>
-                      ) : groups.map((g) => {
-                        const selected = form.group_ids.includes(g.id)
-                        return (
-                          <label
-                            key={g.id}
-                            style={{
-                              display: 'flex', alignItems: 'center', gap: '0.625rem',
-                              padding: '0.5rem 0.625rem', borderRadius: '0.375rem',
-                              cursor: 'pointer',
-                              backgroundColor: selected ? 'var(--color-primary-fixed)' : 'transparent',
-                              transition: 'background 0.15s',
-                            }}
-                          >
-                            <input type="checkbox" checked={selected} onChange={() => toggleGroupId(g.id)} style={{ accentColor: 'var(--color-primary)', cursor: 'pointer' }} />
-                            <span style={{ fontSize: '0.85rem', fontWeight: selected ? 600 : 400, color: selected ? 'var(--color-primary)' : 'var(--color-on-surface)' }}>
-                              {g.name}
-                            </span>
-                            <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--color-on-surface-variant)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                              <Users size={12} /> {g.member_count}
-                            </span>
-                          </label>
-                        )
-                      })}
+                  {/* Due date + OneDrive side by side */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', marginBottom: '0.375rem' }}>Due Date *</label>
+                      <input ref={dueDateRef} id="input-due-date" type="date" defaultValue={editing ? editing.due_date.split('T')[0] : ''} style={inputStyle} onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)' }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-outline-variant)' }} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', marginBottom: '0.375rem' }}>Assign To *</label>
+                      <select id="input-assign-type" value={assignedType} onChange={(e) => { setAssignedType(e.target.value as 'all' | 'group'); setSelectedGroupIds([]) }} style={{ ...inputStyle, cursor: 'pointer' }}>
+                        <option value="all">All Groups</option>
+                        <option value="group">Specific Groups</option>
+                      </select>
                     </div>
                   </div>
-                )}
 
-                <button type="submit" disabled={formLoading} style={{ padding: '0.75rem', borderRadius: '0.625rem', border: 'none', backgroundColor: 'var(--color-primary)', color: 'white', fontSize: '0.9rem', fontWeight: 600, cursor: formLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', opacity: formLoading ? 0.7 : 1, marginTop: '0.25rem' }}>
-                  {formLoading && <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />}
-                  {editing ? 'Update Assignment' : 'Create Assignment'}
-                </button>
-              </form>
+                  {/* OneDrive link */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', marginBottom: '0.375rem' }}>OneDrive Link *</label>
+                    <input ref={onedriveRef} id="input-onedrive" type="url" defaultValue={editing?.onedrive_link ?? ''} placeholder="https://onedrive.live.com/..." style={inputStyle} onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)' }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-outline-variant)' }} />
+                  </div>
+
+                  {/* Group multi-select */}
+                  {assignedType === 'group' && (
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', marginBottom: '0.5rem' }}>
+                        Select Groups * <span style={{ fontWeight: 400, color: 'var(--color-on-surface-variant)' }}>({selectedGroupIds.length} selected)</span>
+                      </label>
+                      <div style={{ maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.375rem', padding: '0.5rem', backgroundColor: 'var(--color-surface-container)', borderRadius: '0.5rem', border: '1.5px solid var(--color-outline-variant)' }}>
+                        {groups.length === 0 ? (
+                          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-on-surface-variant)', textAlign: 'center', padding: '1rem' }}>No groups found</p>
+                        ) : groups.map((g) => {
+                          const selected = selectedGroupIds.includes(g.id)
+                          return (
+                            <label
+                              key={g.id}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: '0.625rem',
+                                padding: '0.5rem 0.625rem', borderRadius: '0.375rem',
+                                cursor: 'pointer',
+                                backgroundColor: selected ? 'var(--color-primary-fixed)' : 'transparent',
+                                transition: 'background 0.15s',
+                              }}
+                            >
+                              <input type="checkbox" checked={selected} onChange={() => toggleGroupId(g.id)} style={{ accentColor: 'var(--color-primary)', cursor: 'pointer' }} />
+                              <span style={{ fontSize: '0.85rem', fontWeight: selected ? 600 : 400, color: selected ? 'var(--color-primary)' : 'var(--color-on-surface)' }}>
+                                {g.name}
+                              </span>
+                              <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--color-on-surface-variant)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                <Users size={12} /> {g.member_count}
+                              </span>
+                            </label>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  <button type="submit" disabled={formLoading} style={{ padding: '0.75rem', borderRadius: '0.625rem', border: 'none', backgroundColor: 'var(--color-primary)', color: 'white', fontSize: '0.9rem', fontWeight: 600, cursor: formLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', opacity: formLoading ? 0.7 : 1, marginTop: '0.25rem' }}>
+                    {formLoading && <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />}
+                    {editing ? 'Update Assignment' : 'Create Assignment'}
+                  </button>
+                </form>
+              </motion.div>
             </div>
-          </div>
-        </>
-      )}
-      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* ── Delete Confirm Modal ─────────────────────────────────────────────── */}
-      {deleteTarget && (
-        <>
-          <div onClick={closeDelete} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', zIndex: 50 }} />
-          <div style={{ position: 'fixed', inset: 0, zIndex: 51, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: 'var(--color-surface-container-lowest)', borderRadius: '1rem', width: '100%', maxWidth: '420px', boxShadow: '0 25px 60px rgba(0,0,0,0.25)', overflow: 'hidden' }}>
-              <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--color-outline-variant)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-                  <Trash2 size={18} color="var(--color-error)" />
-                  <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--color-on-surface)' }}>Delete Assignment</h2>
-                </div>
-                <button onClick={closeDelete} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-on-surface-variant)', display: 'flex' }}>
-                  <X size={20} />
-                </button>
-              </div>
-              <div style={{ padding: '1.5rem' }}>
-                <p style={{ margin: '0 0 0.5rem', fontSize: '0.9rem', color: 'var(--color-on-surface)' }}>
-                  Are you sure you want to delete <strong>&#34;{deleteTarget.title}&#34;</strong>?
-                </p>
-                <p style={{ margin: '0 0 1.25rem', fontSize: '0.8rem', color: 'var(--color-on-surface-variant)' }}>
-                  This will permanently remove the assignment and all related submissions. This action cannot be undone.
-                </p>
-                {deleteError && (
-                  <div style={{ padding: '0.75rem 1rem', borderRadius: '0.5rem', backgroundColor: 'var(--color-error-container)', color: 'var(--color-error)', fontSize: '0.875rem', display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '1rem' }}>
-                    <AlertCircle size={16} /> {deleteError}
+      <AnimatePresence>
+        {deleteTarget && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeDelete}
+              style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 50 }}
+            />
+            <div style={{ position: 'fixed', inset: 0, zIndex: 51, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+              <motion.div
+                initial={{ scale: 0.93, opacity: 0, y: 15 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.93, opacity: 0, y: 15 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                onClick={(e) => e.stopPropagation()}
+                style={{ backgroundColor: 'var(--color-surface-container-lowest)', borderRadius: '1rem', width: '100%', maxWidth: '420px', boxShadow: '0 25px 60px rgba(0,0,0,0.25)', overflow: 'hidden' }}
+              >
+                <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--color-outline-variant)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                    <Trash2 size={18} color="var(--color-error)" />
+                    <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--color-on-surface)' }}>Delete Assignment</h2>
                   </div>
-                )}
-                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-                  <button
-                    onClick={closeDelete}
-                    style={{ padding: '0.5rem 1.125rem', borderRadius: '0.5rem', border: '1px solid var(--color-outline-variant)', backgroundColor: 'transparent', color: 'var(--color-on-surface-variant)', fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer' }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    id="btn-confirm-delete"
-                    onClick={handleDelete}
-                    disabled={deleteLoading}
-                    style={{ padding: '0.5rem 1.125rem', borderRadius: '0.5rem', border: 'none', backgroundColor: 'var(--color-error)', color: 'white', fontSize: '0.875rem', fontWeight: 600, cursor: deleteLoading ? 'not-allowed' : 'pointer', opacity: deleteLoading ? 0.7 : 1, display: 'flex', alignItems: 'center', gap: '0.375rem' }}
-                  >
-                    {deleteLoading && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />}
-                    {deleteLoading ? 'Deleting…' : 'Delete Assignment'}
+                  <button onClick={closeDelete} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-on-surface-variant)', display: 'flex' }}>
+                    <X size={20} />
                   </button>
                 </div>
-              </div>
+                <div style={{ padding: '1.5rem' }}>
+                  <p style={{ margin: '0 0 0.5rem', fontSize: '0.9rem', color: 'var(--color-on-surface)' }}>
+                    Are you sure you want to delete <strong>&#34;{deleteTarget.title}&#34;</strong>?
+                  </p>
+                  <p style={{ margin: '0 0 1.25rem', fontSize: '0.8rem', color: 'var(--color-on-surface-variant)' }}>
+                    This will permanently remove the assignment and all related submissions. This action cannot be undone.
+                  </p>
+                  {deleteError && (
+                    <div style={{ padding: '0.75rem 1rem', borderRadius: '0.5rem', backgroundColor: 'var(--color-error-container)', color: 'var(--color-error)', fontSize: '0.875rem', display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '1rem' }}>
+                      <AlertCircle size={16} /> {deleteError}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                    <button
+                      onClick={closeDelete}
+                      style={{ padding: '0.5rem 1.125rem', borderRadius: '0.5rem', border: '1px solid var(--color-outline-variant)', backgroundColor: 'transparent', color: 'var(--color-on-surface-variant)', fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer' }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      id="btn-confirm-delete"
+                      onClick={handleDelete}
+                      disabled={deleteLoading}
+                      style={{ padding: '0.5rem 1.125rem', borderRadius: '0.5rem', border: 'none', backgroundColor: 'var(--color-error)', color: 'white', fontSize: '0.875rem', fontWeight: 600, cursor: deleteLoading ? 'not-allowed' : 'pointer', opacity: deleteLoading ? 0.7 : 1, display: 'flex', alignItems: 'center', gap: '0.375rem' }}
+                    >
+                      {deleteLoading && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />}
+                      {deleteLoading ? 'Deleting…' : 'Delete Assignment'}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
             </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </AnimatePresence>
     </Sidebar>
   )
 }

@@ -1,14 +1,15 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mail, Lock, AlertCircle, Loader2, GraduationCap } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { motion } from 'framer-motion'
 
 export default function Login() {
   const navigate = useNavigate()
   const { login } = useAuth()
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const emailRef = useRef<HTMLInputElement>(null)
+  const passwordRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -16,22 +17,18 @@ export default function Login() {
     e.preventDefault()
     setError('')
 
-    if (!email.trim() || !password.trim()) {
+    const emailVal = emailRef.current?.value.trim() ?? ''
+    const passwordVal = passwordRef.current?.value ?? ''
+
+    if (!emailVal || !passwordVal) {
       setError('Please enter both email and password.')
       return
     }
 
     setIsLoading(true)
     try {
-      await login(email.trim(), password)
-      // AuthContext exposes user after login; re-read from context
-      // by navigating — useAuth() is reactive via state updates
-      // We'll read the role from the API response stored in context
-      // Navigate after a microtask so React state settles
+      await login(emailVal, passwordVal)
       setTimeout(() => {
-        // Re-read from localStorage isn't needed; context handles navigation
-        // We rely on the token decode or re-fetch — but here we just route
-        // to a neutral redirect handler in App.tsx
         navigate('/', { replace: true })
       }, 0)
     } catch (err: unknown) {
@@ -56,8 +53,12 @@ export default function Login() {
         fontFamily: 'var(--font-sans)',
       }}
     >
-      <div style={{ width: '100%', maxWidth: '420px' }}>
-
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        style={{ width: '100%', maxWidth: '420px' }}
+      >
         {/* Logo & Brand */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div
@@ -178,11 +179,10 @@ export default function Login() {
                   <Mail size={16} />
                 </div>
                 <input
+                  ref={emailRef}
                   id="login-email"
                   type="email"
                   autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@university.edu"
                   disabled={isLoading}
                   style={{
@@ -242,11 +242,10 @@ export default function Login() {
                   <Lock size={16} />
                 </div>
                 <input
+                  ref={passwordRef}
                   id="login-password"
                   type="password"
                   autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   disabled={isLoading}
                   style={{
@@ -347,7 +346,7 @@ export default function Login() {
             Create account
           </Link>
         </p>
-      </div>
+      </motion.div>
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }

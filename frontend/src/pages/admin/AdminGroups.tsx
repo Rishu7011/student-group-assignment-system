@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import apiClient from '../../api/client'
 import Sidebar from '../../components/Sidebar'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Users,
   Loader2,
@@ -192,52 +193,65 @@ export default function AdminGroups() {
                     </div>
 
                     {/* Expanded detail */}
-                    {isExpanded && detail && (
-                      <div style={{ borderTop: '1px solid var(--color-outline-variant)', backgroundColor: 'var(--color-surface-container)' }}>
-                        {/* Progress bar */}
-                        <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--color-outline-variant)' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)' }}>
-                              Submission Progress
-                            </span>
-                            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: detail.progress.completion_rate === 100 ? '#16a34a' : 'var(--color-primary)' }}>
-                              {detail.progress.confirmed_count}/{detail.progress.total_assignments} assignments
-                            </span>
+                    <AnimatePresence>
+                      {isExpanded && detail && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.25, ease: 'easeInOut' }}
+                          style={{ overflow: 'hidden', borderTop: '1px solid var(--color-outline-variant)', backgroundColor: 'var(--color-surface-container)' }}
+                        >
+                          {/* Progress bar */}
+                          <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--color-outline-variant)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)' }}>
+                                Submission Progress
+                              </span>
+                              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: detail.progress.completion_rate === 100 ? '#16a34a' : 'var(--color-primary)' }}>
+                                {detail.progress.confirmed_count}/{detail.progress.total_assignments} assignments
+                              </span>
+                            </div>
+                            <div style={{ height: '6px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '9999px', overflow: 'hidden' }}>
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${detail.progress.completion_rate}%` }}
+                                transition={{ duration: 0.5, ease: 'easeOut' }}
+                                style={{ height: '100%', backgroundColor: detail.progress.completion_rate === 100 ? '#22c55e' : 'var(--color-primary)', borderRadius: '9999px' }}
+                              />
+                            </div>
                           </div>
-                          <div style={{ height: '6px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '9999px', overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${detail.progress.completion_rate}%`, backgroundColor: detail.progress.completion_rate === 100 ? '#22c55e' : 'var(--color-primary)', borderRadius: '9999px', transition: 'width 0.5s' }} />
-                          </div>
-                        </div>
 
-                        {/* Member list */}
-                        <div style={{ padding: '1rem 1.5rem' }}>
-                          <p style={{ margin: '0 0 0.75rem', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-on-surface-variant)' }}>
-                            Members ({detail.members.length})
-                          </p>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.5rem' }}>
-                            {detail.members.map((m) => (
-                              <div
-                                key={m.id}
-                                style={{
-                                  display: 'flex', alignItems: 'center', gap: '0.625rem',
-                                  padding: '0.5rem 0.75rem', borderRadius: '0.5rem',
-                                  backgroundColor: 'var(--color-surface-container-lowest)',
-                                  border: '1px solid var(--color-outline-variant)',
-                                }}
-                              >
-                                <div style={{ width: '1.75rem', height: '1.75rem', borderRadius: '50%', backgroundColor: 'var(--color-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, flexShrink: 0 }}>
-                                  {m.name.charAt(0).toUpperCase()}
+                          {/* Member list */}
+                          <div style={{ padding: '1rem 1.5rem' }}>
+                            <p style={{ margin: '0 0 0.75rem', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-on-surface-variant)' }}>
+                              Members ({detail.members.length})
+                            </p>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '0.5rem' }}>
+                              {detail.members.map((m) => (
+                                <div
+                                  key={m.id}
+                                  style={{
+                                    display: 'flex', alignItems: 'center', gap: '0.625rem',
+                                    padding: '0.5rem 0.75rem', borderRadius: '0.5rem',
+                                    backgroundColor: 'var(--color-surface-container-lowest)',
+                                    border: '1px solid var(--color-outline-variant)',
+                                  }}
+                                >
+                                  <div style={{ width: '1.75rem', height: '1.75rem', borderRadius: '50%', backgroundColor: 'var(--color-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, flexShrink: 0 }}>
+                                    {m.name.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div style={{ minWidth: 0 }}>
+                                    <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</p>
+                                    <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--color-on-surface-variant)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.email}</p>
+                                  </div>
                                 </div>
-                                <div style={{ minWidth: 0 }}>
-                                  <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</p>
-                                  <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--color-on-surface-variant)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.email}</p>
-                                </div>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 )
               })}

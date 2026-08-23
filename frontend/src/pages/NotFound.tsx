@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { motion } from 'framer-motion'
 import { GraduationCap, Home, ArrowLeft } from 'lucide-react'
 
 export default function NotFound() {
@@ -26,7 +27,12 @@ export default function NotFound() {
         padding: '2rem',
       }}
     >
-      <div style={{ textAlign: 'center', maxWidth: '480px' }}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        style={{ textAlign: 'center', maxWidth: '480px' }}
+      >
         {/* Logo */}
         <div
           style={{
@@ -132,7 +138,7 @@ export default function NotFound() {
             {isAuthenticated ? 'Go to Dashboard' : 'Go to Login'}
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }

@@ -1,8 +1,6 @@
-version: "3.9"
-
 services:
   postgres:
-    image: postgres:16
+    image: postgres:16-alpine
     container_name: sgas_postgres
     restart: unless-stopped
     environment:
@@ -16,9 +14,66 @@ services:
       - ./backend/migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sgas_user -d sgas_db"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - sgas_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sgas_backend
+    restart: unless-stopped
+    environment:
+      PORT: 5001
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: sgas_db
+      DB_USER: sgas_user
+      DB_PASSWORD: sgas_pass
+      JWT_SECRET: sgas_jwt_super_secret_production_key_2024
+      ADMIN_EMAIL: sysadmin@groupsync.internal
+      ADMIN_PASSWORD: Adm!n@GrpSync#2024
+      ADMIN_NAME: System Administrator
+    ports:
+      - "5001:5001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5001/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - sgas_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sgas_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "5173:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - sgas_network
 
 volumes:
   postgres_data:
+    driver: local
+
+networks:
+  sgas_network:
+    driver: bridge

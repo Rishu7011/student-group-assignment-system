@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import apiClient from '../api/client'
 import Sidebar from '../components/Sidebar'
+import type { Variants } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   Users,
   BookOpen,
@@ -48,6 +50,25 @@ function getDeadlineBadge(dueDate: string) {
   if (diffDays < 0) return { label: 'Overdue', color: '#dc2626', bg: '#fee2e2' }
   if (diffDays < 7) return { label: 'Due Soon', color: '#d97706', bg: '#fef3c7' }
   return { label: 'Upcoming', color: '#16a34a', bg: '#dcfce7' }
+}
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+    },
+  },
+}
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 14 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: 'easeOut' },
+  },
 }
 
 export default function StudentDashboard() {
@@ -99,31 +120,38 @@ export default function StudentDashboard() {
 
   return (
     <Sidebar>
-      <div style={{ padding: '2rem 1.75rem', maxWidth: '900px' }}>
+      <div style={{ padding: '1.75rem 1.25rem', maxWidth: '960px', margin: '0 auto', width: '100%' }}>
         {/* Welcome banner */}
-        <div
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: 'easeOut' }}
           style={{
             background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%)',
             borderRadius: '1rem',
-            padding: '1.75rem 2rem',
-            marginBottom: '2rem',
+            padding: '1.75rem 1.5rem',
+            marginBottom: '1.75rem',
             color: 'white',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             flexWrap: 'wrap',
             gap: '1rem',
+            boxShadow: '0 8px 24px rgba(53, 37, 205, 0.25)',
           }}
         >
           <div>
-            <p style={{ fontSize: '0.875rem', opacity: 0.8, margin: '0 0 0.25rem' }}>Welcome back,</p>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: '0 0 0.375rem', letterSpacing: '-0.01em' }}>
+            <p style={{ fontSize: '0.875rem', opacity: 0.85, margin: '0 0 0.25rem' }}>Welcome back,</p>
+            <h1 style={{ fontSize: '1.65rem', fontWeight: 700, margin: '0 0 0.375rem', letterSpacing: '-0.01em' }}>
               {user?.name ?? 'Student'} 👋
             </h1>
-            <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.75 }}>{user?.email}</p>
+            <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.8 }}>{user?.email}</p>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
               style={{
                 fontSize: '2.5rem',
                 fontWeight: 800,
@@ -132,10 +160,10 @@ export default function StudentDashboard() {
               }}
             >
               {progressPct}%
-            </div>
-            <div style={{ fontSize: '0.75rem', opacity: 0.75 }}>Overall Progress</div>
+            </motion.div>
+            <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>Overall Progress</div>
           </div>
-        </div>
+        </motion.div>
 
         {loading ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px' }}>
@@ -158,14 +186,14 @@ export default function StudentDashboard() {
             {error}
           </div>
         ) : (
-          <>
+          <motion.div variants={containerVariants} initial="hidden" animate="visible">
             {/* Stats cards */}
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
                 gap: '1rem',
-                marginBottom: '2rem',
+                marginBottom: '1.75rem',
               }}
             >
               {[
@@ -198,14 +226,17 @@ export default function StudentDashboard() {
                   id: 'stat-total',
                 },
               ].map((s) => (
-                <div
+                <motion.div
                   key={s.id}
                   id={s.id}
+                  variants={itemVariants}
+                  whileHover={{ y: -2, transition: { duration: 0.15 } }}
                   style={{
                     backgroundColor: 'var(--color-surface-container-lowest)',
                     borderRadius: '0.75rem',
                     padding: '1.25rem',
                     border: '1px solid var(--color-outline-variant)',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
                   }}
                 >
                   <div
@@ -226,19 +257,21 @@ export default function StudentDashboard() {
                     {s.value}
                   </p>
                   <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-on-surface-variant)' }}>{s.label}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
 
             {/* Progress bar */}
             {totalCount > 0 && (
-              <div
+              <motion.div
+                variants={itemVariants}
                 style={{
                   backgroundColor: 'var(--color-surface-container-lowest)',
                   borderRadius: '0.75rem',
                   padding: '1.25rem 1.5rem',
                   border: '1px solid var(--color-outline-variant)',
-                  marginBottom: '2rem',
+                  marginBottom: '1.75rem',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
@@ -250,152 +283,158 @@ export default function StudentDashboard() {
                   </span>
                 </div>
                 <div style={{ height: '8px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '9999px', overflow: 'hidden' }}>
-                  <div
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progressPct}%` }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
                     style={{
                       height: '100%',
-                      width: `${progressPct}%`,
                       borderRadius: '9999px',
                       backgroundColor: progressPct === 100 ? '#16a34a' : 'var(--color-primary)',
-                      transition: 'width 0.6s ease',
                     }}
                   />
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Group summary */}
-            {groups.length > 0 ? (
-              <div
-                style={{
-                  backgroundColor: 'var(--color-surface-container-lowest)',
-                  borderRadius: '0.75rem',
-                  border: '1px solid var(--color-outline-variant)',
-                  marginBottom: '2rem',
-                  overflow: 'hidden',
-                }}
-              >
+            <motion.div variants={itemVariants}>
+              {groups.length > 0 ? (
                 <div
                   style={{
-                    padding: '1rem 1.25rem',
-                    borderBottom: '1px solid var(--color-outline-variant)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
+                    backgroundColor: 'var(--color-surface-container-lowest)',
+                    borderRadius: '0.75rem',
+                    border: '1px solid var(--color-outline-variant)',
+                    marginBottom: '1.75rem',
+                    overflow: 'hidden',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Users size={18} color="var(--color-primary)" />
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-on-surface)' }}>
-                      My Active Group
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => navigate('/student/groups')}
+                  <div
                     style={{
+                      padding: '1rem 1.25rem',
+                      borderBottom: '1px solid var(--color-outline-variant)',
                       display: 'flex',
+                      justifyContent: 'space-between',
                       alignItems: 'center',
-                      gap: '0.25rem',
-                      fontSize: '0.8rem',
-                      color: 'var(--color-primary)',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontWeight: 500,
                     }}
                   >
-                    View All <ChevronRight size={14} />
-                  </button>
-                </div>
-                <div style={{ padding: '1.25rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                    <div>
-                      <h3 style={{ margin: '0 0 0.25rem', fontSize: '1rem', fontWeight: 700, color: 'var(--color-on-surface)' }}>
-                        {groups[0].name}
-                      </h3>
-                      <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-on-surface-variant)' }}>
-                        {groups[0].members.length} member{groups[0].members.length !== 1 ? 's' : ''}
-                      </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Users size={18} color="var(--color-primary)" />
+                      <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-on-surface)' }}>
+                        My Active Group
+                      </span>
                     </div>
+                    <button
+                      onClick={() => navigate('/student/groups')}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                        fontSize: '0.8rem',
+                        color: 'var(--color-primary)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                      }}
+                    >
+                      View All <ChevronRight size={14} />
+                    </button>
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    {groups[0].members.map((m) => (
-                      <div
-                        key={m.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.375rem',
-                          padding: '0.25rem 0.625rem',
-                          borderRadius: '9999px',
-                          backgroundColor: 'var(--color-surface-container)',
-                          fontSize: '0.8rem',
-                          color: 'var(--color-on-surface)',
-                        }}
-                      >
+                  <div style={{ padding: '1.25rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                      <div>
+                        <h3 style={{ margin: '0 0 0.25rem', fontSize: '1rem', fontWeight: 700, color: 'var(--color-on-surface)' }}>
+                          {groups[0].name}
+                        </h3>
+                        <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-on-surface-variant)' }}>
+                          {groups[0].members.length} member{groups[0].members.length !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      {groups[0].members.map((m) => (
                         <div
+                          key={m.id}
                           style={{
-                            width: '1.25rem',
-                            height: '1.25rem',
-                            borderRadius: '50%',
-                            backgroundColor: 'var(--color-primary)',
-                            color: 'white',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '0.6rem',
-                            fontWeight: 700,
+                            gap: '0.375rem',
+                            padding: '0.25rem 0.625rem',
+                            borderRadius: '9999px',
+                            backgroundColor: 'var(--color-surface-container)',
+                            fontSize: '0.8rem',
+                            color: 'var(--color-on-surface)',
                           }}
                         >
-                          {m.name.charAt(0).toUpperCase()}
+                          <div
+                            style={{
+                              width: '1.25rem',
+                              height: '1.25rem',
+                              borderRadius: '50%',
+                              backgroundColor: 'var(--color-primary)',
+                              color: 'white',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '0.6rem',
+                              fontWeight: 700,
+                            }}
+                          >
+                            {m.name.charAt(0).toUpperCase()}
+                          </div>
+                          {m.name}
                         </div>
-                        {m.name}
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div
-                style={{
-                  backgroundColor: 'var(--color-surface-container)',
-                  borderRadius: '0.75rem',
-                  padding: '2rem',
-                  textAlign: 'center',
-                  marginBottom: '2rem',
-                  border: '1px dashed var(--color-outline-variant)',
-                }}
-              >
-                <Users size={32} color="var(--color-on-surface-variant)" style={{ marginBottom: '0.75rem' }} />
-                <p style={{ margin: '0 0 1rem', color: 'var(--color-on-surface-variant)', fontSize: '0.875rem' }}>
-                  You're not in any group yet.
-                </p>
-                <button
-                  id="btn-create-group"
-                  onClick={() => navigate('/student/groups')}
+              ) : (
+                <div
                   style={{
-                    padding: '0.5rem 1.25rem',
-                    borderRadius: '0.5rem',
-                    backgroundColor: 'var(--color-primary)',
-                    color: 'white',
-                    border: 'none',
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
+                    backgroundColor: 'var(--color-surface-container)',
+                    borderRadius: '0.75rem',
+                    padding: '2rem',
+                    textAlign: 'center',
+                    marginBottom: '1.75rem',
+                    border: '1px dashed var(--color-outline-variant)',
                   }}
                 >
-                  Create a Group
-                </button>
-              </div>
-            )}
+                  <Users size={32} color="var(--color-on-surface-variant)" style={{ marginBottom: '0.75rem', opacity: 0.6 }} />
+                  <p style={{ margin: '0 0 1rem', color: 'var(--color-on-surface-variant)', fontSize: '0.875rem' }}>
+                    You're not in any group yet.
+                  </p>
+                  <button
+                    id="btn-create-group"
+                    onClick={() => navigate('/student/groups')}
+                    style={{
+                      padding: '0.5rem 1.25rem',
+                      borderRadius: '0.5rem',
+                      backgroundColor: 'var(--color-primary)',
+                      color: 'white',
+                      border: 'none',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Create a Group
+                  </button>
+                </div>
+              )}
+            </motion.div>
 
             {/* Assignment preview */}
             {recentAssignments.length > 0 && (
-              <div
+              <motion.div
+                variants={itemVariants}
                 style={{
                   backgroundColor: 'var(--color-surface-container-lowest)',
                   borderRadius: '0.75rem',
                   border: '1px solid var(--color-outline-variant)',
                   overflow: 'hidden',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
                 }}
               >
                 <div
@@ -424,7 +463,7 @@ export default function StudentDashboard() {
                       background: 'none',
                       border: 'none',
                       cursor: 'pointer',
-                      fontWeight: 500,
+                      fontWeight: 600,
                     }}
                   >
                     View All <ChevronRight size={14} />
@@ -483,9 +522,9 @@ export default function StudentDashboard() {
                     </div>
                   )
                 })}
-              </div>
+              </motion.div>
             )}
-          </>
+          </motion.div>
         )}
       </div>
     </Sidebar>
