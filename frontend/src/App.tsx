@@ -11,6 +11,7 @@ import AssignmentDetail from './pages/student/AssignmentDetail'
 import ManageAssignments from './pages/admin/ManageAssignments'
 import SubmissionTracker from './pages/admin/SubmissionTracker'
 import AdminGroups from './pages/admin/AdminGroups'
+import NotFound from './pages/NotFound'
 
 // Root redirect: authenticated users go to their dashboard, others go to login
 function RootRedirect() {
@@ -48,9 +49,10 @@ export default function App() {
         <Route path="/admin/groups" element={<AdminGroups />} />
       </Route>
 
-      {/* Root + catch-all → smart redirect */}
+      {/* Root → smart redirect */}
       <Route path="/" element={<RootRedirect />} />
-      <Route path="*" element={<RootRedirect />} />
+      {/* 404 — any unknown route */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   )
 }

@@ -9,7 +9,6 @@ import {
   LogOut,
   ChevronRight,
   ShieldCheck,
-  BarChart3,
 } from 'lucide-react'
 
 interface NavItem {
@@ -201,49 +200,6 @@ export default function Sidebar({ children }: SidebarProps) {
             </NavLink>
           ))}
 
-          {user?.role === 'admin' && (
-            <>
-              <p
-                style={{
-                  fontSize: '0.7rem',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
-                  color: 'var(--color-on-surface-variant)',
-                  padding: '0 0.25rem',
-                  marginTop: '1.25rem',
-                  marginBottom: '0.5rem',
-                }}
-              >
-                Analytics
-              </p>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.625rem',
-                  padding: '0.625rem 0.75rem',
-                  borderRadius: '0.5rem',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: 'var(--color-on-surface-variant)',
-                }}
-              >
-                <BarChart3 size={18} />
-                <span>Live Data</span>
-                <span
-                  style={{
-                    marginLeft: 'auto',
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    backgroundColor: '#22c55e',
-                    animation: 'pulse 2s infinite',
-                  }}
-                />
-              </div>
-            </>
-          )}
         </nav>
 
         {/* User profile + logout */}

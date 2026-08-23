@@ -112,6 +112,42 @@ export async function updateAssignment(req: Request, res: Response): Promise<voi
   }
 }
 
+// DELETE /api/assignments/:id  (admin, creator only)
+export async function deleteAssignment(req: Request, res: Response): Promise<void> {
+  const assignmentId = parseInt(req.params.id, 10);
+  if (isNaN(assignmentId)) {
+    res.status(400).json({ error: 'Invalid assignment ID' }); return;
+  }
+
+  const client = await pool.connect();
+  try {
+    const existing = await client.query(`SELECT * FROM assignments WHERE id = $1`, [assignmentId]);
+    if (existing.rows.length === 0) {
+      res.status(404).json({ error: 'Assignment not found' }); return;
+    }
+    if (existing.rows[0].created_by !== req.user!.id) {
+      res.status(403).json({ error: 'You can only delete your own assignments' }); return;
+    }
+
+    await client.query('BEGIN');
+    // Remove linked groups first (in case FK is not CASCADE)
+    await client.query(`DELETE FROM assignment_groups WHERE assignment_id = $1`, [assignmentId]);
+    // Remove submissions linked to this assignment
+    await client.query(`DELETE FROM submissions WHERE assignment_id = $1`, [assignmentId]);
+    // Delete the assignment itself
+    await client.query(`DELETE FROM assignments WHERE id = $1`, [assignmentId]);
+    await client.query('COMMIT');
+
+    res.status(200).json({ message: 'Assignment deleted successfully' });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('deleteAssignment error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  } finally {
+    client.release();
+  }
+}
+
 // GET /api/assignments  (role-aware)
 export async function listAssignments(req: Request, res: Response): Promise<void> {
   try {

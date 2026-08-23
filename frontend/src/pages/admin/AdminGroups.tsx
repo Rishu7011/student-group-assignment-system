@@ -106,7 +106,7 @@ export default function AdminGroups() {
                 <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--color-secondary)' }}>
                   {groups.reduce((sum, g) => sum + g.member_count, 0)}
                 </span>
-                <span style={{ fontSize: '0.8rem', color: 'var(--color-secondary)' }}>Total Students</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-secondary)' }}>Enrolled Members</span>
               </div>
             </div>
 

@@ -4,6 +4,7 @@ import Sidebar from '../../components/Sidebar'
 import {
   Plus,
   Edit2,
+  Trash2,
   X,
   Loader2,
   AlertCircle,
@@ -60,6 +61,9 @@ export default function ManageAssignments() {
   const [formLoading, setFormLoading] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [formSuccess, setFormSuccess] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Assignment | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     try {
@@ -106,6 +110,31 @@ export default function ManageAssignments() {
     setEditing(null)
     setFormError(null)
     setFormSuccess(null)
+  }
+
+  function openDelete(a: Assignment) {
+    setDeleteTarget(a)
+    setDeleteError(null)
+  }
+
+  function closeDelete() {
+    setDeleteTarget(null)
+    setDeleteError(null)
+  }
+
+  async function handleDelete() {
+    if (!deleteTarget) return
+    setDeleteLoading(true)
+    setDeleteError(null)
+    try {
+      await apiClient.delete(`/assignments/${deleteTarget.id}`)
+      setAssignments((prev) => prev.filter((a) => a.id !== deleteTarget.id))
+      closeDelete()
+    } catch (err: any) {
+      setDeleteError(err.response?.data?.error ?? 'Failed to delete assignment.')
+    } finally {
+      setDeleteLoading(false)
+    }
   }
 
   function toggleGroupId(id: number) {
@@ -252,22 +281,40 @@ export default function ManageAssignments() {
                       <span style={{ fontSize: '0.78rem', color: 'var(--color-on-surface-variant)' }}>By {a.creator_name}</span>
                     </div>
                   </div>
-                  <button
-                    id={`btn-edit-assignment-${a.id}`}
-                    onClick={() => openEdit(a)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: '0.375rem',
-                      padding: '0.375rem 0.75rem', borderRadius: '0.5rem',
-                      border: '1px solid var(--color-outline-variant)',
-                      backgroundColor: 'transparent', color: 'var(--color-on-surface-variant)',
-                      fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer',
-                      flexShrink: 0, transition: 'all 0.15s',
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-primary-fixed)'; e.currentTarget.style.color = 'var(--color-primary)'; e.currentTarget.style.borderColor = 'var(--color-primary)' }}
-                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--color-on-surface-variant)'; e.currentTarget.style.borderColor = 'var(--color-outline-variant)' }}
-                  >
-                    <Edit2 size={14} /> Edit
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                    <button
+                      id={`btn-edit-assignment-${a.id}`}
+                      onClick={() => openEdit(a)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '0.375rem',
+                        padding: '0.375rem 0.75rem', borderRadius: '0.5rem',
+                        border: '1px solid var(--color-outline-variant)',
+                        backgroundColor: 'transparent', color: 'var(--color-on-surface-variant)',
+                        fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer',
+                        transition: 'all 0.15s',
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-primary-fixed)'; e.currentTarget.style.color = 'var(--color-primary)'; e.currentTarget.style.borderColor = 'var(--color-primary)' }}
+                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--color-on-surface-variant)'; e.currentTarget.style.borderColor = 'var(--color-outline-variant)' }}
+                    >
+                      <Edit2 size={14} /> Edit
+                    </button>
+                    <button
+                      id={`btn-delete-assignment-${a.id}`}
+                      onClick={() => openDelete(a)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '0.375rem',
+                        padding: '0.375rem 0.75rem', borderRadius: '0.5rem',
+                        border: '1px solid var(--color-outline-variant)',
+                        backgroundColor: 'transparent', color: 'var(--color-on-surface-variant)',
+                        fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer',
+                        transition: 'all 0.15s',
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-error-container)'; e.currentTarget.style.color = 'var(--color-error)'; e.currentTarget.style.borderColor = 'var(--color-error)' }}
+                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--color-on-surface-variant)'; e.currentTarget.style.borderColor = 'var(--color-outline-variant)' }}
+                    >
+                      <Trash2 size={14} /> Delete
+                    </button>
+                  </div>
                 </div>
               )
             })}
@@ -385,6 +432,56 @@ export default function ManageAssignments() {
         </>
       )}
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+
+      {/* ── Delete Confirm Modal ─────────────────────────────────────────────── */}
+      {deleteTarget && (
+        <>
+          <div onClick={closeDelete} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', zIndex: 50 }} />
+          <div style={{ position: 'fixed', inset: 0, zIndex: 51, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: 'var(--color-surface-container-lowest)', borderRadius: '1rem', width: '100%', maxWidth: '420px', boxShadow: '0 25px 60px rgba(0,0,0,0.25)', overflow: 'hidden' }}>
+              <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--color-outline-variant)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                  <Trash2 size={18} color="var(--color-error)" />
+                  <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--color-on-surface)' }}>Delete Assignment</h2>
+                </div>
+                <button onClick={closeDelete} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-on-surface-variant)', display: 'flex' }}>
+                  <X size={20} />
+                </button>
+              </div>
+              <div style={{ padding: '1.5rem' }}>
+                <p style={{ margin: '0 0 0.5rem', fontSize: '0.9rem', color: 'var(--color-on-surface)' }}>
+                  Are you sure you want to delete <strong>&#34;{deleteTarget.title}&#34;</strong>?
+                </p>
+                <p style={{ margin: '0 0 1.25rem', fontSize: '0.8rem', color: 'var(--color-on-surface-variant)' }}>
+                  This will permanently remove the assignment and all related submissions. This action cannot be undone.
+                </p>
+                {deleteError && (
+                  <div style={{ padding: '0.75rem 1rem', borderRadius: '0.5rem', backgroundColor: 'var(--color-error-container)', color: 'var(--color-error)', fontSize: '0.875rem', display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '1rem' }}>
+                    <AlertCircle size={16} /> {deleteError}
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={closeDelete}
+                    style={{ padding: '0.5rem 1.125rem', borderRadius: '0.5rem', border: '1px solid var(--color-outline-variant)', backgroundColor: 'transparent', color: 'var(--color-on-surface-variant)', fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer' }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    id="btn-confirm-delete"
+                    onClick={handleDelete}
+                    disabled={deleteLoading}
+                    style={{ padding: '0.5rem 1.125rem', borderRadius: '0.5rem', border: 'none', backgroundColor: 'var(--color-error)', color: 'white', fontSize: '0.875rem', fontWeight: 600, cursor: deleteLoading ? 'not-allowed' : 'pointer', opacity: deleteLoading ? 0.7 : 1, display: 'flex', alignItems: 'center', gap: '0.375rem' }}
+                  >
+                    {deleteLoading && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />}
+                    {deleteLoading ? 'Deleting…' : 'Delete Assignment'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </Sidebar>
   )
 }
