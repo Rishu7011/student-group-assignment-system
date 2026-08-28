@@ -8,6 +8,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import GroupManagement from './pages/student/GroupManagement'
 import AssignmentList from './pages/student/AssignmentList'
 import AssignmentDetail from './pages/student/AssignmentDetail'
+import CoursePage from './pages/CoursePage'
 import ManageAssignments from './pages/admin/ManageAssignments'
 import SubmissionTracker from './pages/admin/SubmissionTracker'
 import AdminGroups from './pages/admin/AdminGroups'
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="/student/groups" element={<GroupManagement />} />
         <Route path="/student/assignments" element={<AssignmentList />} />
         <Route path="/student/assignments/:id" element={<AssignmentDetail />} />
+        <Route path="/student/courses/:id" element={<CoursePage />} />
       </Route>
 
       {/* Protected: admin only */}

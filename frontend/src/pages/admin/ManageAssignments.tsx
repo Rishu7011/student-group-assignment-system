@@ -15,6 +15,19 @@ import {
   ExternalLink,
   Users,
 } from 'lucide-react'
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+  FieldDescription,
+} from '../../components/ui/field'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '../../components/ui/select'
 
 interface Assignment {
   id: number
@@ -191,7 +204,7 @@ export default function ManageAssignments() {
 
   return (
     <Sidebar>
-      <div style={{ padding: '2rem 1.75rem', maxWidth: '1000px' }}>
+      <div style={{ padding: '2rem 1.5rem', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem' }}>
           <div>
@@ -378,38 +391,52 @@ export default function ManageAssignments() {
                     </div>
                   )}
 
-                  {/* Title */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', marginBottom: '0.375rem' }}>Title *</label>
-                    <input ref={titleRef} id="input-title" defaultValue={editing?.title ?? ''} placeholder="Assignment title" style={inputStyle} onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)' }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-outline-variant)' }} />
-                  </div>
+                  <FieldGroup>
+                    {/* Title */}
+                    <Field>
+                      <FieldLabel htmlFor="input-title">Title *</FieldLabel>
+                      <input ref={titleRef} id="input-title" defaultValue={editing?.title ?? ''} placeholder="Assignment title" style={inputStyle} onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)' }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-outline-variant)' }} />
+                    </Field>
 
-                  {/* Description */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', marginBottom: '0.375rem' }}>Description</label>
-                    <textarea ref={descRef} id="input-description" defaultValue={editing?.description ?? ''} placeholder="Optional description..." rows={3} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'var(--font-sans)' }} onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)' }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-outline-variant)' }} />
-                  </div>
+                    {/* Description */}
+                    <Field>
+                      <FieldLabel htmlFor="input-description">Description</FieldLabel>
+                      <textarea ref={descRef} id="input-description" defaultValue={editing?.description ?? ''} placeholder="Optional description..." rows={3} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'var(--font-sans)' }} onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)' }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-outline-variant)' }} />
+                    </Field>
 
-                  {/* Due date + OneDrive side by side */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', marginBottom: '0.375rem' }}>Due Date *</label>
-                      <input ref={dueDateRef} id="input-due-date" type="date" defaultValue={editing ? editing.due_date.split('T')[0] : ''} style={inputStyle} onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)' }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-outline-variant)' }} />
+                    {/* Due date + Assign To side by side */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
+                      <Field>
+                        <FieldLabel htmlFor="input-due-date">Due Date *</FieldLabel>
+                        <input ref={dueDateRef} id="input-due-date" type="date" defaultValue={editing ? editing.due_date.split('T')[0] : ''} style={inputStyle} onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)' }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-outline-variant)' }} />
+                      </Field>
+                      <Field>
+                        <FieldLabel>Assign To *</FieldLabel>
+                        <Select
+                          value={assignedType}
+                          onValueChange={(val) => {
+                            setAssignedType(val as 'all' | 'group')
+                            setSelectedGroupIds([])
+                          }}
+                        >
+                          <SelectTrigger id="input-assign-type" className="h-10 bg-white">
+                            <SelectValue placeholder="Assign To..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Groups</SelectItem>
+                            <SelectItem value="group">Specific Groups</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </Field>
                     </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', marginBottom: '0.375rem' }}>Assign To *</label>
-                      <select id="input-assign-type" value={assignedType} onChange={(e) => { setAssignedType(e.target.value as 'all' | 'group'); setSelectedGroupIds([]) }} style={{ ...inputStyle, cursor: 'pointer' }}>
-                        <option value="all">All Groups</option>
-                        <option value="group">Specific Groups</option>
-                      </select>
-                    </div>
-                  </div>
 
-                  {/* OneDrive link */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', marginBottom: '0.375rem' }}>OneDrive Link *</label>
-                    <input ref={onedriveRef} id="input-onedrive" type="url" defaultValue={editing?.onedrive_link ?? ''} placeholder="https://onedrive.live.com/..." style={inputStyle} onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)' }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-outline-variant)' }} />
-                  </div>
+                    {/* OneDrive link */}
+                    <Field>
+                      <FieldLabel htmlFor="input-onedrive">OneDrive Link *</FieldLabel>
+                      <input ref={onedriveRef} id="input-onedrive" type="url" defaultValue={editing?.onedrive_link ?? ''} placeholder="https://onedrive.live.com/..." style={inputStyle} onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)' }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-outline-variant)' }} />
+                      <FieldDescription>Students will submit their project deliverables into this cloud folder.</FieldDescription>
+                    </Field>
+                  </FieldGroup>
 
                   {/* Group multi-select */}
                   {assignedType === 'group' && (

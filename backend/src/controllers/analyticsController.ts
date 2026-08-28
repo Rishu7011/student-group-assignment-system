@@ -59,3 +59,71 @@ export async function overview(_req: Request, res: Response): Promise<void> {
     res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+// GET /api/courses/:id/analytics  (admin/professor only)
+export async function getCourseAnalytics(req: Request, res: Response): Promise<void> {
+  const courseId = parseInt(req.params.id, 10);
+  if (isNaN(courseId)) {
+    res.status(400).json({ error: 'Invalid course ID' });
+    return;
+  }
+
+  try {
+    // Verify the course exists and belongs to this professor
+    const courseCheck = await pool.query(
+      `SELECT id, title FROM courses WHERE id = $1 AND professor_id = $2`,
+      [courseId, req.user!.id]
+    );
+    if (courseCheck.rows.length === 0) {
+      res.status(404).json({ error: 'Course not found or access denied' });
+      return;
+    }
+
+    // Enrolled student count
+    const studentCountResult = await pool.query(
+      `SELECT COUNT(*)::int AS "studentCount"
+       FROM course_enrollments
+       WHERE course_id = $1`,
+      [courseId]
+    );
+    const studentCount: number = studentCountResult.rows[0].studentCount;
+
+    // Per-assignment submission status breakdown using SQL aggregates
+    const perAssignmentResult = await pool.query(
+      `SELECT
+         a.id          AS "assignmentId",
+         a.title,
+         a.due_date    AS "dueDate",
+         COUNT(DISTINCT ce.student_id)::int                                    AS "enrolledStudents",
+         COUNT(s.id) FILTER (WHERE s.status = 'pending')::int                  AS "pending",
+         COUNT(s.id) FILTER (WHERE s.status = 'pending_confirmation')::int     AS "pendingConfirmation",
+         COUNT(s.id) FILTER (WHERE s.status = 'confirmed')::int                AS "confirmed",
+         COUNT(DISTINCT g.id)::int                                              AS "totalGroups"
+       FROM assignments a
+       JOIN course_enrollments ce ON ce.course_id = a.course_id
+       LEFT JOIN group_members gm ON gm.user_id   = ce.student_id
+       LEFT JOIN groups g         ON g.id          = gm.group_id
+       LEFT JOIN submissions s    ON s.assignment_id = a.id AND s.group_id = g.id
+       WHERE a.course_id = $1
+       GROUP BY a.id, a.title, a.due_date
+       ORDER BY a.created_at DESC`,
+      [courseId]
+    );
+
+    // Overall completion % across all assignments in this course
+    const totalConfirmed = perAssignmentResult.rows.reduce((sum, r) => sum + r.confirmed, 0);
+    const totalGroups    = perAssignmentResult.rows.reduce((sum, r) => sum + r.totalGroups, 0);
+    const completionPct  = totalGroups > 0 ? Math.round((totalConfirmed / totalGroups) * 100) : 0;
+
+    res.status(200).json({
+      courseId,
+      courseTitle:   courseCheck.rows[0].title,
+      studentCount,
+      completionPct,
+      perAssignment: perAssignmentResult.rows,
+    });
+  } catch (err) {
+    console.error('getCourseAnalytics error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}

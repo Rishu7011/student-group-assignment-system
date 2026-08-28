@@ -12,6 +12,13 @@ import {
   Check,
   X,
 } from 'lucide-react'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '../../components/ui/select'
 
 interface Assignment {
   id: number
@@ -189,7 +196,7 @@ export default function SubmissionTracker() {
 
   return (
     <Sidebar>
-      <div style={{ padding: '2rem 1.75rem', maxWidth: '1150px' }}>
+      <div style={{ padding: '2rem 1.5rem', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
         {/* Header */}
         <div style={{ marginBottom: '1.75rem' }}>
           <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-on-surface)', letterSpacing: '-0.01em' }}>
@@ -212,26 +219,25 @@ export default function SubmissionTracker() {
         ) : (
           <>
             {/* Assignment selector */}
-            <div style={{ marginBottom: '1.5rem' }}>
+            <div style={{ marginBottom: '1.5rem', maxWidth: '420px' }}>
               <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-on-surface)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Select Assignment
               </label>
-              <select
-                id="select-assignment"
-                value={selectedId ?? ''}
-                onChange={(e) => setSelectedId(Number(e.target.value))}
-                style={{
-                  padding: '0.625rem 0.875rem', borderRadius: '0.5rem',
-                  border: '1.5px solid var(--color-outline-variant)',
-                  fontSize: '0.875rem', color: 'var(--color-on-surface)',
-                  backgroundColor: 'var(--color-surface-container-lowest)',
-                  minWidth: '320px', cursor: 'pointer', outline: 'none',
-                }}
+              <Select
+                value={selectedId ? String(selectedId) : undefined}
+                onValueChange={(val) => setSelectedId(Number(val))}
               >
-                {assignments.map((a) => (
-                  <option key={a.id} value={a.id}>{a.title}</option>
-                ))}
-              </select>
+                <SelectTrigger id="select-assignment" className="w-full h-10 bg-white">
+                  <SelectValue placeholder="Choose an assignment..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {assignments.map((a) => (
+                    <SelectItem key={a.id} value={String(a.id)}>
+                      {a.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Summary stats */}

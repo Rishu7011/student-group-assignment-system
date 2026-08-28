@@ -77,13 +77,37 @@ export default function Register() {
     }
   }
 
+  const validateSingle = (field: string, val: string) => {
+    const next = { ...fieldErrors }
+    if (field === 'name') {
+      if (!val.trim()) next.name = 'Full name is required.'
+      else delete next.name
+    }
+    if (field === 'email') {
+      if (!val.trim()) next.email = 'Email is required.'
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim()))
+        next.email = 'Enter a valid email address.'
+      else delete next.email
+    }
+    if (field === 'password') {
+      if (!val) next.password = 'Password is required.'
+      else if (val.length < 6)
+        next.password = 'Password must be at least 6 characters.'
+      else delete next.password
+    }
+    setFieldErrors(next)
+  }
+
   const onFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     e.currentTarget.style.borderColor = 'var(--color-primary)'
     e.currentTarget.style.boxShadow = '0 0 0 3px rgba(53, 37, 205, 0.12)'
   }
-  const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+  const onBlur = (e: React.FocusEvent<HTMLInputElement>, field?: string) => {
     e.currentTarget.style.borderColor = 'var(--color-outline-variant)'
     e.currentTarget.style.boxShadow = 'none'
+    if (field) {
+      validateSingle(field, e.target.value)
+    }
   }
 
   return (
@@ -237,7 +261,7 @@ export default function Register() {
                       : 'var(--color-outline-variant)',
                   }}
                   onFocus={onFocus}
-                  onBlur={onBlur}
+                  onBlur={(e) => onBlur(e, 'name')}
                 />
               </div>
               {fieldErrors.name && (
@@ -288,7 +312,7 @@ export default function Register() {
                       : 'var(--color-outline-variant)',
                   }}
                   onFocus={onFocus}
-                  onBlur={onBlur}
+                  onBlur={(e) => onBlur(e, 'email')}
                 />
               </div>
               {fieldErrors.email && (
@@ -299,7 +323,7 @@ export default function Register() {
             </div>
 
             {/* Password */}
-            <div style={{ marginBottom: '1.25rem' }}>
+            <div style={{ marginBottom: '1.5rem' }}>
               <label
                 htmlFor="reg-password"
                 style={{
@@ -339,7 +363,7 @@ export default function Register() {
                       : 'var(--color-outline-variant)',
                   }}
                   onFocus={onFocus}
-                  onBlur={onBlur}
+                  onBlur={(e) => onBlur(e, 'password')}
                 />
               </div>
               {fieldErrors.password && (

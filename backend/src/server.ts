@@ -9,6 +9,7 @@ import assignmentRoutes from './routes/assignmentRoutes';
 import submissionRoutes from './routes/submissionRoutes';
 import analyticsRoutes from './routes/analyticsRoutes';
 import uploadRoutes from './routes/uploadRoutes';
+import courseRoutes from './routes/courseRoutes';
 import { seedSystemAdmin } from './scripts/seedAdmin';
 
 const app = express();
@@ -32,6 +33,7 @@ app.use('/api/assignments', assignmentRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/courses', courseRoutes);
 
 // ── 404 handler ─────────────────────────────────────────────────────────────
 app.use((_req, res) => {
@@ -44,12 +46,14 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// ── Start ────────────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 5001;
-app.listen(PORT, async () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  // Ensure the system admin account exists (idempotent)
-  await seedSystemAdmin();
-});
+// ── Start (Only if run directly, not in Vercel serverless) ───────────────────
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
+  const PORT = process.env.PORT || 5001;
+  app.listen(PORT, async () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    // Ensure the system admin account exists (idempotent)
+    await seedSystemAdmin();
+  });
+}
 
 export default app;

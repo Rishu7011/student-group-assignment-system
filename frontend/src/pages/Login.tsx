@@ -11,7 +11,31 @@ export default function Login() {
   const emailRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
+
+  const validateField = (field: 'email' | 'password', val: string) => {
+    const nextErrors = { ...fieldErrors }
+    if (field === 'email') {
+      if (!val.trim()) {
+        nextErrors.email = 'Email address is required.'
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim())) {
+        nextErrors.email = 'Please enter a valid email address.'
+      } else {
+        delete nextErrors.email
+      }
+    }
+    if (field === 'password') {
+      if (!val) {
+        nextErrors.password = 'Password is required.'
+      } else if (val.length < 6) {
+        nextErrors.password = 'Password must be at least 6 characters.'
+      } else {
+        delete nextErrors.password
+      }
+    }
+    setFieldErrors(nextErrors)
+  }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -20,10 +44,13 @@ export default function Login() {
     const emailVal = emailRef.current?.value.trim() ?? ''
     const passwordVal = passwordRef.current?.value ?? ''
 
-    if (!emailVal || !passwordVal) {
-      setError('Please enter both email and password.')
-      return
-    }
+    const errs: Record<string, string> = {}
+    if (!emailVal) errs.email = 'Email address is required.'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) errs.email = 'Please enter a valid email address.'
+    if (!passwordVal) errs.password = 'Password is required.'
+
+    setFieldErrors(errs)
+    if (Object.keys(errs).length > 0) return
 
     setIsLoading(true)
     try {
@@ -172,7 +199,7 @@ export default function Login() {
                     left: '0.75rem',
                     top: '50%',
                     transform: 'translateY(-50%)',
-                    color: 'var(--color-on-surface-variant)',
+                    color: fieldErrors.email ? 'var(--color-error)' : 'var(--color-on-surface-variant)',
                     pointerEvents: 'none',
                   }}
                 >
@@ -185,6 +212,7 @@ export default function Login() {
                   autoComplete="email"
                   placeholder="you@university.edu"
                   disabled={isLoading}
+                  onBlur={(e) => validateField('email', e.target.value)}
                   style={{
                     width: '100%',
                     paddingLeft: '2.5rem',
@@ -192,7 +220,7 @@ export default function Login() {
                     paddingTop: '0.625rem',
                     paddingBottom: '0.625rem',
                     fontSize: '0.9375rem',
-                    border: '1.5px solid var(--color-outline-variant)',
+                    border: `1.5px solid ${fieldErrors.email ? 'var(--color-error)' : 'var(--color-outline-variant)'}`,
                     borderRadius: '0.5rem',
                     backgroundColor: 'var(--color-surface)',
                     color: 'var(--color-on-surface)',
@@ -201,17 +229,17 @@ export default function Login() {
                     boxSizing: 'border-box',
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--color-primary)'
+                    e.currentTarget.style.borderColor = fieldErrors.email ? 'var(--color-error)' : 'var(--color-primary)'
                     e.currentTarget.style.boxShadow =
                       '0 0 0 3px rgba(53, 37, 205, 0.12)'
                   }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor =
-                      'var(--color-outline-variant)'
-                    e.currentTarget.style.boxShadow = 'none'
-                  }}
                 />
               </div>
+              {fieldErrors.email && (
+                <p style={{ margin: '0.35rem 0 0', fontSize: '0.78rem', color: 'var(--color-error)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <AlertCircle size={12} /> {fieldErrors.email}
+                </p>
+              )}
             </div>
 
             {/* Password */}
@@ -235,7 +263,7 @@ export default function Login() {
                     left: '0.75rem',
                     top: '50%',
                     transform: 'translateY(-50%)',
-                    color: 'var(--color-on-surface-variant)',
+                    color: fieldErrors.password ? 'var(--color-error)' : 'var(--color-on-surface-variant)',
                     pointerEvents: 'none',
                   }}
                 >
@@ -248,6 +276,7 @@ export default function Login() {
                   autoComplete="current-password"
                   placeholder="••••••••"
                   disabled={isLoading}
+                  onBlur={(e) => validateField('password', e.target.value)}
                   style={{
                     width: '100%',
                     paddingLeft: '2.5rem',
@@ -255,7 +284,7 @@ export default function Login() {
                     paddingTop: '0.625rem',
                     paddingBottom: '0.625rem',
                     fontSize: '0.9375rem',
-                    border: '1.5px solid var(--color-outline-variant)',
+                    border: `1.5px solid ${fieldErrors.password ? 'var(--color-error)' : 'var(--color-outline-variant)'}`,
                     borderRadius: '0.5rem',
                     backgroundColor: 'var(--color-surface)',
                     color: 'var(--color-on-surface)',
@@ -264,17 +293,17 @@ export default function Login() {
                     boxSizing: 'border-box',
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--color-primary)'
+                    e.currentTarget.style.borderColor = fieldErrors.password ? 'var(--color-error)' : 'var(--color-primary)'
                     e.currentTarget.style.boxShadow =
                       '0 0 0 3px rgba(53, 37, 205, 0.12)'
                   }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor =
-                      'var(--color-outline-variant)'
-                    e.currentTarget.style.boxShadow = 'none'
-                  }}
                 />
               </div>
+              {fieldErrors.password && (
+                <p style={{ margin: '0.35rem 0 0', fontSize: '0.78rem', color: 'var(--color-error)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <AlertCircle size={12} /> {fieldErrors.password}
+                </p>
+              )}
             </div>
 
             {/* Submit */}

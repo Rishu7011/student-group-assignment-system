@@ -10,6 +10,7 @@ import {
   ChevronUp,
   CalendarDays,
   TrendingUp,
+  Crown,
 } from 'lucide-react'
 
 interface GroupSummary {
@@ -68,7 +69,7 @@ export default function AdminGroups() {
 
   return (
     <Sidebar>
-      <div style={{ padding: '2rem 1.75rem', maxWidth: '900px' }}>
+      <div style={{ padding: '2rem 1.5rem', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
         {/* Header */}
         <div style={{ marginBottom: '1.75rem' }}>
           <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-on-surface)', letterSpacing: '-0.01em' }}>
@@ -228,25 +229,36 @@ export default function AdminGroups() {
                               Members ({detail.members.length})
                             </p>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '0.5rem' }}>
-                              {detail.members.map((m) => (
-                                <div
-                                  key={m.id}
-                                  style={{
-                                    display: 'flex', alignItems: 'center', gap: '0.625rem',
-                                    padding: '0.5rem 0.75rem', borderRadius: '0.5rem',
-                                    backgroundColor: 'var(--color-surface-container-lowest)',
-                                    border: '1px solid var(--color-outline-variant)',
-                                  }}
-                                >
-                                  <div style={{ width: '1.75rem', height: '1.75rem', borderRadius: '50%', backgroundColor: 'var(--color-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, flexShrink: 0 }}>
-                                    {m.name.charAt(0).toUpperCase()}
-                                  </div>
-                                  <div style={{ minWidth: 0 }}>
-                                    <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</p>
-                                    <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--color-on-surface-variant)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.email}</p>
-                                  </div>
-                                </div>
-                              ))}
+                                {detail.members.map((m: any) => {
+                                  const isLeader = m.isLeader || m.id === (detail as any).created_by || m.id === (detail as any).leader_id
+                                  return (
+                                    <div
+                                      key={m.id}
+                                      style={{
+                                        display: 'flex', alignItems: 'center', gap: '0.625rem',
+                                        padding: '0.5rem 0.75rem', borderRadius: '0.5rem',
+                                        backgroundColor: isLeader ? '#f5f3ff' : 'var(--color-surface-container-lowest)',
+                                        border: isLeader ? '1px solid #ddd6fe' : '1px solid var(--color-outline-variant)',
+                                      }}
+                                    >
+                                      <div style={{ width: '1.75rem', height: '1.75rem', borderRadius: '50%', backgroundColor: isLeader ? '#7c3aed' : 'var(--color-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, flexShrink: 0 }}>
+                                        {m.name.charAt(0).toUpperCase()}
+                                      </div>
+                                      <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                          <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-on-surface)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</p>
+                                          {isLeader && <Crown size={11} color="#eab308" />}
+                                        </div>
+                                        <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--color-on-surface-variant)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.email}</p>
+                                      </div>
+                                      {isLeader && (
+                                        <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#7c3aed', backgroundColor: '#ede9fe', padding: '0.15rem 0.4rem', borderRadius: '9999px' }}>
+                                          Leader
+                                        </span>
+                                      )}
+                                    </div>
+                                  )
+                                })}
                             </div>
                           </div>
                         </motion.div>

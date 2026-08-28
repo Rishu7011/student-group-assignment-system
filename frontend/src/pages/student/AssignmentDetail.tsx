@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import apiClient from '../../api/client'
 import Sidebar from '../../components/Sidebar'
 import SubmissionModal from '../../components/student/SubmissionModal'
+import gsap from 'gsap'
 import {
   ArrowLeft,
   CalendarDays,
@@ -15,6 +16,8 @@ import {
   AlertCircle,
   FileText,
   Send,
+  Crown,
+  GraduationCap,
 } from 'lucide-react'
 
 type SubmissionStatus = 'pending' | 'pending_confirmation' | 'confirmed'
@@ -26,9 +29,10 @@ interface Assignment {
   due_date: string
   onedrive_link: string
   assigned_to_type: string
+  course_id?: number | null
+  course_title?: string
   creator_name: string
   created_at: string
-  targeted_groups?: Array<{ id: number; name: string }>
 }
 
 interface GroupSubmission {
@@ -56,9 +60,9 @@ function getDeadlineMeta(dueDate: string) {
   const diffMs = due.getTime() - now.getTime()
   const diffDays = diffMs / (1000 * 60 * 60 * 24)
 
-  if (diffDays < 0) return { label: 'Overdue', color: '#dc2626', bg: '#fee2e2', icon: <AlertTriangle size={14} /> }
-  if (diffDays < 7) return { label: `Due in ${Math.ceil(diffDays)} day${Math.ceil(diffDays) !== 1 ? 's' : ''}`, color: '#d97706', bg: '#fef3c7', icon: <Clock size={14} /> }
-  return { label: `Due in ${Math.ceil(diffDays)} days`, color: '#16a34a', bg: '#dcfce7', icon: <CalendarDays size={14} /> }
+  if (diffDays < 0) return { label: 'Overdue', class: 'tag-red', icon: <AlertTriangle size={13} /> }
+  if (diffDays < 7) return { label: `Due in ${Math.ceil(diffDays)} days`, class: 'tag-amber', icon: <Clock size={13} /> }
+  return { label: `Due in ${Math.ceil(diffDays)} days`, class: 'tag-green', icon: <CalendarDays size={13} /> }
 }
 
 export default function AssignmentDetail() {
@@ -67,9 +71,13 @@ export default function AssignmentDetail() {
   const [assignment, setAssignment] = useState<Assignment | null>(null)
   const [myGroup, setMyGroup] = useState<Group | null>(null)
   const [groupSubs, setGroupSubs] = useState<GroupSubmission[]>([])
+  const [isLeader, setIsLeader] = useState(true)
+  const [leaderName, setLeaderName] = useState<string>('Leader')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
+
+  const contentRef = useRef<HTMLDivElement>(null)
 
   async function load() {
     try {
@@ -81,8 +89,17 @@ export default function AssignmentDetail() {
       const firstGroup = groupRes.data.groups[0] ?? null
       setMyGroup(firstGroup)
       if (firstGroup) {
-        const subRes = await apiClient.get<{ assignments: GroupSubmission[] }>(`/submissions/group/${firstGroup.id}`)
+        const [subRes, groupDetailRes] = await Promise.all([
+          apiClient.get<{ assignments: GroupSubmission[] }>(`/submissions/group/${firstGroup.id}`),
+          apiClient.get<{ group: { id: number; name: string; isLeader?: boolean; leader_id?: number; members: Array<{ id: number; name: string; isLeader?: boolean }> } }>(`/groups/${firstGroup.id}`).catch(() => null),
+        ])
         setGroupSubs(subRes.data.assignments)
+        if (groupDetailRes?.data?.group) {
+          const g = groupDetailRes.data.group
+          setIsLeader(g.isLeader ?? false)
+          const leaderMember = g.members.find((m) => m.isLeader || m.id === g.leader_id)
+          if (leaderMember) setLeaderName(leaderMember.name)
+        }
       }
     } catch (err: any) {
       if (err.response?.status === 403) {
@@ -99,6 +116,20 @@ export default function AssignmentDetail() {
 
   useEffect(() => { load() }, [id])
 
+  // GSAP Entrance
+  useEffect(() => {
+    if (!loading && contentRef.current) {
+      gsap.from('.gsap-assignment-fade', {
+        opacity: 0,
+        y: 16,
+        duration: 0.5,
+        stagger: 0.08,
+        ease: 'power3.out',
+        clearProps: 'transform,opacity',
+      })
+    }
+  }, [loading])
+
   const thisSubmission = groupSubs.find((s) => s.assignment_id === Number(id))
   const currentStatus = (thisSubmission?.status ?? 'pending') as SubmissionStatus
 
@@ -112,318 +143,214 @@ export default function AssignmentDetail() {
     })
   }
 
-  const stepPct = currentStatus === 'confirmed' ? 100 : currentStatus === 'pending_confirmation' ? 50 : 0
   const deadline = assignment ? getDeadlineMeta(assignment.due_date) : null
 
   return (
     <Sidebar>
-      <div style={{ padding: '2rem 1.75rem', maxWidth: '800px' }}>
-        {/* Back button */}
-        <button
-          onClick={() => navigate('/student/assignments')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.375rem',
-            fontSize: '0.875rem',
-            color: 'var(--color-on-surface-variant)',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            marginBottom: '1.5rem',
-            padding: 0,
-          }}
-        >
-          <ArrowLeft size={16} /> Back to Assignments
-        </button>
+      <div ref={contentRef} style={{ padding: '2rem 1.5rem', maxWidth: '880px', margin: '0 auto', width: '100%' }}>
+        {/* Back navigation & breadcrumb */}
+        <div className="gsap-assignment-fade" style={{ marginBottom: '1.25rem' }}>
+          <button
+            onClick={() => navigate('/student/assignments')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              fontSize: '0.82rem',
+              color: 'var(--color-on-surface-variant)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              marginBottom: '0.5rem',
+            }}
+          >
+            <ArrowLeft size={14} /> Back to Assignments
+          </button>
+        </div>
 
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '4rem' }}>
-            <Loader2 size={32} color="var(--color-primary)" style={{ animation: 'spin 1s linear infinite' }} />
+            <Loader2 size={32} color="#191919" style={{ animation: 'spin 1s linear infinite' }} />
             <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
           </div>
         ) : error ? (
-          <div style={{ padding: '1rem', borderRadius: '0.75rem', backgroundColor: 'var(--color-error-container)', color: 'var(--color-error)', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div className="notion-callout" style={{ backgroundColor: 'var(--color-error-container)', color: 'var(--color-error)', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <AlertCircle size={18} /> {error}
           </div>
         ) : assignment ? (
           <>
-            {/* Assignment card */}
-            <div
-              style={{
-                backgroundColor: 'var(--color-surface-container-lowest)',
-                borderRadius: '1rem',
-                border: '1px solid var(--color-outline-variant)',
-                overflow: 'hidden',
-                marginBottom: '1.5rem',
-              }}
-            >
-              {/* Header gradient */}
-              <div
-                style={{
-                  background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%)',
-                  padding: '1.75rem 2rem',
-                  color: 'white',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: '0 0 0.25rem', fontSize: '0.75rem', opacity: 0.75 }}>Assignment</p>
-                    <h1 style={{ margin: '0 0 0.75rem', fontSize: '1.4rem', fontWeight: 700, letterSpacing: '-0.01em' }}>
-                      {assignment.title}
-                    </h1>
-                    {deadline && (
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.375rem',
-                          padding: '0.25rem 0.75rem',
-                          borderRadius: '9999px',
-                          backgroundColor: deadline.bg,
-                          color: deadline.color,
-                          fontSize: '0.8rem',
-                          fontWeight: 600,
-                        }}
-                      >
-                        {deadline.icon} {deadline.label}
-                      </span>
-                    )}
-                  </div>
+            {/* Notion Style Page Header & Properties Table */}
+            <div className="gsap-assignment-fade notion-callout" style={{ padding: '1.75rem', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                <span style={{ fontSize: '2rem', lineHeight: 1 }}>📄</span>
+                <div>
+                  <h1 style={{ margin: '0 0 0.25rem', fontSize: '1.6rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--color-on-surface)' }}>
+                    {assignment.title}
+                  </h1>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-on-surface-variant)' }}>
+                    Created by {assignment.creator_name} · Posted on {new Date(assignment.created_at).toLocaleDateString()}
+                  </p>
                 </div>
               </div>
 
-              {/* Details */}
-              <div style={{ padding: '1.5rem 2rem' }}>
-                {assignment.description && (
-                  <div style={{ marginBottom: '1.25rem' }}>
-                    <h3 style={{ margin: '0 0 0.5rem', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-on-surface-variant)' }}>
-                      Description
-                    </h3>
-                    <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-on-surface)', lineHeight: 1.7 }}>
-                      {assignment.description}
-                    </p>
-                  </div>
-                )}
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
-                  <div>
-                    <p style={{ margin: '0 0 0.25rem', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-on-surface-variant)' }}>
-                      Due Date
-                    </p>
-                    <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-on-surface)', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                      <CalendarDays size={16} color="var(--color-primary)" />
-                      {new Date(assignment.due_date).toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' })}
-                    </p>
-                  </div>
-                  <div>
-                    <p style={{ margin: '0 0 0.25rem', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-on-surface-variant)' }}>
-                      Posted By
-                    </p>
-                    <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-on-surface)' }}>
-                      {assignment.creator_name}
-                    </p>
-                  </div>
-                  <div>
-                    <p style={{ margin: '0 0 0.25rem', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-on-surface-variant)' }}>
-                      Target
-                    </p>
-                    <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-on-surface)', display: 'flex', alignItems: 'center', gap: '0.375rem', textTransform: 'capitalize' }}>
-                      <Users size={14} color="var(--color-primary)" />
-                      {assignment.assigned_to_type === 'all' ? 'All Groups' : 'Specific Groups'}
-                    </p>
-                  </div>
+              {/* Notion 2-Column Properties Matrix */}
+              <div style={{ borderTop: '1px solid #e5e5e0', paddingTop: '1rem', display: 'grid', gridTemplateColumns: '140px 1fr', gap: '0.625rem 1rem', fontSize: '0.85rem', alignItems: 'center' }}>
+                <div style={{ color: 'var(--color-on-surface-variant)', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                  <GraduationCap size={15} /> Scope
+                </div>
+                <div>
+                  <span className="tag-purple" style={{ fontSize: '0.75rem', fontWeight: 600, padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+                    {assignment.course_title || 'Academic Deliverable'}
+                  </span>
                 </div>
 
-                {/* OneDrive link button */}
-                <a
-                  id="btn-onedrive-link"
-                  href={assignment.onedrive_link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    padding: '0.625rem 1.25rem',
-                    borderRadius: '0.625rem',
-                    backgroundColor: 'var(--color-primary-fixed)',
-                    color: 'var(--color-primary)',
-                    border: '1px solid var(--color-primary)',
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    textDecoration: 'none',
-                    transition: 'all 0.15s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--color-primary)'
-                    e.currentTarget.style.color = 'white'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--color-primary-fixed)'
-                    e.currentTarget.style.color = 'var(--color-primary)'
-                  }}
-                >
-                  <FileText size={16} />
-                  Open OneDrive Folder
-                  <ExternalLink size={14} />
-                </a>
+                <div style={{ color: 'var(--color-on-surface-variant)', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                  <CalendarDays size={15} /> Deadline
+                </div>
+                <div>
+                  {deadline && (
+                    <span className={deadline.class} style={{ fontSize: '0.75rem', fontWeight: 600, padding: '0.2rem 0.5rem', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                      {deadline.icon} {new Date(assignment.due_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} ({deadline.label})
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ color: 'var(--color-on-surface-variant)', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                  <Users size={15} /> Target
+                </div>
+                <div>
+                  <span className="tag-gray" style={{ fontSize: '0.75rem', fontWeight: 500, padding: '0.2rem 0.5rem', borderRadius: '4px', textTransform: 'capitalize' }}>
+                    {assignment.assigned_to_type === 'all' ? 'All Enrolled Groups' : 'Specific Groups'}
+                  </span>
+                </div>
+
+                <div style={{ color: 'var(--color-on-surface-variant)', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                  <FileText size={15} /> Repository
+                </div>
+                <div>
+                  <a
+                    id="btn-onedrive-link"
+                    href={assignment.onedrive_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover-lift"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.375rem',
+                      padding: '0.25rem 0.625rem',
+                      borderRadius: '4px',
+                      backgroundColor: '#f1f1ef',
+                      color: '#191919',
+                      border: '1px solid #e5e5e0',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    Open OneDrive Folder <ExternalLink size={12} />
+                  </a>
+                </div>
               </div>
             </div>
 
-            {/* Submission status card */}
-            <div
-              style={{
-                backgroundColor: 'var(--color-surface-container-lowest)',
-                borderRadius: '1rem',
-                border: `1px solid ${currentStatus === 'confirmed' ? '#bbf7d0' : 'var(--color-outline-variant)'}`,
-                padding: '1.5rem',
-              }}
-            >
-              <h3 style={{ margin: '0 0 1rem', fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-on-surface)' }}>
-                Your Group's Submission
+            {/* Assignment Instructions */}
+            {assignment.description && (
+              <div className="gsap-assignment-fade notion-callout" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ margin: '0 0 0.5rem', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-on-surface-variant)' }}>
+                  Instructions & Specifications
+                </h3>
+                <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-on-surface)', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+                  {assignment.description}
+                </p>
+              </div>
+            )}
+
+            {/* Submission Status & Action Callout */}
+            <div className="gsap-assignment-fade notion-callout" style={{ padding: '1.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--color-on-surface)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  👥 Team Deliverable Status
+                  {myGroup && (
+                    <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--color-on-surface-variant)' }}>
+                      — {myGroup.name}
+                    </span>
+                  )}
+                </h3>
                 {myGroup && (
-                  <span style={{ marginLeft: '0.5rem', fontSize: '0.8rem', fontWeight: 500, color: 'var(--color-on-surface-variant)' }}>
-                    — {myGroup.name}
+                  <span className="tag-purple" style={{ fontSize: '0.72rem', fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: '9999px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <Crown size={12} color="#eab308" /> Group Leader: {leaderName}
                   </span>
                 )}
-              </h3>
-
-              {/* Progress track */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '1.25rem' }}>
-                {[
-                  { label: 'Not Started', pct: 0 },
-                  { label: 'Step 1 Done', pct: 50 },
-                  { label: 'Confirmed', pct: 100 },
-                ].map((step) => {
-                  const active = stepPct === step.pct
-                  const done = stepPct > step.pct
-                  return (
-                    <div key={step.pct} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', flex: step.pct < 100 ? 1 : 'none' }}>
-                      <div
-                        style={{
-                          width: '1.5rem',
-                          height: '1.5rem',
-                          borderRadius: '50%',
-                          backgroundColor: done || active ? (step.pct === 100 ? '#22c55e' : 'var(--color-primary)') : 'var(--color-surface-container-high)',
-                          border: active && step.pct !== 100 ? '3px solid var(--color-primary)' : 'none',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                          transition: 'all 0.3s',
-                        }}
-                      >
-                        {(done || active) && (
-                          step.pct === 100 ? <CheckCircle2 size={12} color="white" /> : <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'white' }} />
-                        )}
-                      </div>
-                      <span style={{ fontSize: '0.7rem', fontWeight: active ? 700 : 400, color: active ? 'var(--color-on-surface)' : 'var(--color-on-surface-variant)', whiteSpace: 'nowrap' }}>
-                        {step.label}
-                      </span>
-                      {step.pct < 100 && (
-                        <div style={{ flex: 1, height: '2px', backgroundColor: stepPct > step.pct ? 'var(--color-primary)' : 'var(--color-outline-variant)', borderRadius: '9999px' }} />
-                      )}
-                    </div>
-                  )
-                })}
               </div>
 
-              {/* Status summary */}
-              {currentStatus === 'confirmed' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
-                  {/* Professor Review Verdict */}
-                  {thisSubmission?.review_status === 'accepted' ? (
-                    <div style={{ padding: '0.875rem 1rem', borderRadius: '0.625rem', backgroundColor: '#dcfce7', border: '1.5px solid #86efac', color: '#15803d' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.95rem' }}>
-                        <CheckCircle2 size={18} />
-                        Graded: Done / Accepted ✓
-                      </div>
-                      {thisSubmission.review_feedback && (
-                        <p style={{ margin: '0.35rem 0 0', fontSize: '0.85rem', color: '#166534' }}>
-                          Professor feedback: "{thisSubmission.review_feedback}"
-                        </p>
-                      )}
-                    </div>
-                  ) : thisSubmission?.review_status === 'rejected' ? (
-                    <div style={{ padding: '0.875rem 1rem', borderRadius: '0.625rem', backgroundColor: '#fee2e2', border: '1.5px solid #fca5a5', color: '#991b1b' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.95rem' }}>
-                        <AlertTriangle size={18} />
-                        Submission Rejected by Professor
-                      </div>
-                      <p style={{ margin: '0.35rem 0 0', fontSize: '0.85rem', color: '#7f1d1d' }}>
-                        Reason: "{thisSubmission.review_feedback || 'Please review requirements and resubmit'}"
-                      </p>
-                      <p style={{ margin: '0.5rem 0 0', fontSize: '0.8rem', color: '#991b1b', fontWeight: 600 }}>
-                        Your group can upload a revised document below and resubmit.
-                      </p>
-                    </div>
-                  ) : (
-                    <div style={{ padding: '0.75rem 1rem', borderRadius: '0.625rem', backgroundColor: '#fef3c7', border: '1px solid #fde68a', color: '#92400e', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Clock size={16} />
-                      Submitted & locked — Awaiting professor review
-                    </div>
-                  )}
-
-                  {/* Submission details */}
-                  {thisSubmission?.confirmed_at && (
-                    <div style={{ padding: '0.625rem 0.875rem', borderRadius: '0.5rem', backgroundColor: 'var(--color-surface-container)', fontSize: '0.82rem', color: 'var(--color-on-surface-variant)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-                      <div>
-                        Confirmed {new Date(thisSubmission.confirmed_at).toLocaleDateString()}
-                        {thisSubmission.confirmed_by_name && ` by ${thisSubmission.confirmed_by_name}`}
-                      </div>
-                      {thisSubmission.file_url && (
-                        <a
-                          href={thisSubmission.file_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'underline' }}
-                        >
-                          📄 View submitted file
-                        </a>
-                      )}
-                    </div>
+              {/* Status Banner */}
+              {currentStatus === 'confirmed' ? (
+                <div style={{ padding: '1rem', borderRadius: '0.5rem', backgroundColor: thisSubmission?.review_status === 'rejected' ? '#fee2e2' : '#dcfce7', border: `1px solid ${thisSubmission?.review_status === 'rejected' ? '#fca5a5' : '#bbf7d0'}`, marginBottom: '1.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.9rem', color: thisSubmission?.review_status === 'rejected' ? '#991b1b' : '#15803d' }}>
+                    {thisSubmission?.review_status === 'rejected' ? <AlertTriangle size={18} /> : <CheckCircle2 size={18} />}
+                    {thisSubmission?.review_status === 'accepted'
+                      ? 'Grade: Accepted / Done ✓'
+                      : thisSubmission?.review_status === 'rejected'
+                      ? 'Submission Rejected by Professor'
+                      : 'Locked & Confirmed — Awaiting Professor Review'}
+                  </div>
+                  {thisSubmission?.review_feedback && (
+                    <p style={{ margin: '0.35rem 0 0', fontSize: '0.82rem', color: thisSubmission.review_status === 'rejected' ? '#7f1d1d' : '#166534' }}>
+                      Professor Feedback: &ldquo;{thisSubmission.review_feedback}&rdquo;
+                    </p>
                   )}
                 </div>
-              )}
+              ) : currentStatus === 'pending_confirmation' ? (
+                <div style={{ padding: '0.875rem 1rem', borderRadius: '0.5rem', backgroundColor: '#f5f3ff', border: '1px solid #e9d5ff', color: '#6b21a8', marginBottom: '1.25rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Clock size={16} />
+                  Step 1 Completed. Ready for Step 2 final lock-in by <strong>{leaderName}</strong> (Group Leader).
+                </div>
+              ) : null}
 
-              {/* Action button */}
+              {/* Action Buttons */}
               {!myGroup ? (
-                <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-on-surface-variant)' }}>
-                  You must be in a group to submit. <button onClick={() => navigate('/student/groups')} style={{ color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Create a group →</button>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-on-surface-variant)' }}>
+                  You must be part of a team to submit deliverables.{' '}
+                  <button onClick={() => navigate('/student/groups')} style={{ color: '#6b21a8', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+                    Create/Join a group →
+                  </button>
                 </p>
               ) : currentStatus === 'confirmed' && thisSubmission?.review_status !== 'rejected' ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: thisSubmission?.review_status === 'accepted' ? '#15803d' : 'var(--color-on-surface-variant)', fontWeight: 600, fontSize: '0.875rem' }}>
-                  <CheckCircle2 size={18} /> {thisSubmission?.review_status === 'accepted' ? 'Assignment marked as completed' : 'Submission locked'}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#15803d', fontWeight: 600, fontSize: '0.875rem' }}>
+                  <CheckCircle2 size={18} /> Final submission locked on {thisSubmission?.confirmed_at ? new Date(thisSubmission.confirmed_at).toLocaleDateString() : 'file'}.
                 </div>
               ) : (
-                <button
-                  id="btn-start-submission"
-                  onClick={() => setShowModal(true)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '0.625rem',
-                    backgroundColor: thisSubmission?.review_status === 'rejected' ? '#dc2626' : 'var(--color-primary)',
-                    color: 'white',
-                    border: 'none',
-                    fontSize: '0.9rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'opacity 0.15s',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.9' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
-                >
-                  <Send size={16} />
-                  {thisSubmission?.review_status === 'rejected'
-                    ? 'Resubmit Revision (Step 1 & 2)'
-                    : currentStatus === 'pending_confirmation'
-                    ? 'Continue Submission (Step 2)'
-                    : 'Start Submission'}
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <button
+                    id="btn-start-submission"
+                    onClick={() => setShowModal(true)}
+                    className="hover-lift"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.375rem',
+                      padding: '0.55rem 1.2rem',
+                      borderRadius: '0.375rem',
+                      backgroundColor: thisSubmission?.review_status === 'rejected' ? '#dc2626' : '#191919',
+                      color: 'white',
+                      border: 'none',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Send size={15} />
+                    {thisSubmission?.review_status === 'rejected'
+                      ? 'Resubmit Revision'
+                      : currentStatus === 'pending_confirmation'
+                      ? isLeader
+                        ? 'Step 2: Lock In Final Submission'
+                        : `Step 2: View Status (Leader: ${leaderName})`
+                      : 'Start Submission (Step 1 & 2)'}
+                  </button>
+                </div>
               )}
             </div>
           </>
@@ -439,6 +366,8 @@ export default function AssignmentDetail() {
           assignmentTitle={assignment.title}
           groupId={myGroup.id}
           groupName={myGroup.name}
+          isLeader={isLeader}
+          leaderName={leaderName}
           currentStatus={currentStatus}
           onStatusChange={handleStatusChange}
         />

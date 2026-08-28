@@ -5,10 +5,11 @@ const URL_REGEX = /^https?:\/\/.+/i;
 
 // POST /api/assignments  (admin)
 export async function createAssignment(req: Request, res: Response): Promise<void> {
-  const { title, description, due_date, onedrive_link, assigned_to_type, group_ids } =
+  const { title, description, due_date, onedrive_link, assigned_to_type, group_ids, course_id } =
     req.body as {
       title?: string; description?: string; due_date?: string;
       onedrive_link?: string; assigned_to_type?: string; group_ids?: number[];
+      course_id?: number;
     };
 
   if (!title || !due_date || !onedrive_link || !assigned_to_type) {
@@ -32,9 +33,9 @@ export async function createAssignment(req: Request, res: Response): Promise<voi
   try {
     await client.query('BEGIN');
     const assignResult = await client.query(
-      `INSERT INTO assignments (title, description, due_date, onedrive_link, created_by, assigned_to_type)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [title, description ?? null, due_date, onedrive_link, req.user!.id, assigned_to_type]
+      `INSERT INTO assignments (title, description, due_date, onedrive_link, created_by, assigned_to_type, course_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [title, description ?? null, due_date, onedrive_link, req.user!.id, assigned_to_type, course_id ?? null]
     );
     const assignment = assignResult.rows[0];
 
@@ -60,7 +61,7 @@ export async function createAssignment(req: Request, res: Response): Promise<voi
 // PUT /api/assignments/:id  (admin, creator only)
 export async function updateAssignment(req: Request, res: Response): Promise<void> {
   const assignmentId = parseInt(req.params.id, 10);
-  const { title, description, due_date, onedrive_link, assigned_to_type, group_ids } = req.body;
+  const { title, description, due_date, onedrive_link, assigned_to_type, group_ids, course_id } = req.body;
 
   try {
     const existing = await pool.query(`SELECT * FROM assignments WHERE id = $1`, [assignmentId]);
@@ -82,9 +83,10 @@ export async function updateAssignment(req: Request, res: Response): Promise<voi
         `UPDATE assignments
          SET title = COALESCE($1, title), description = COALESCE($2, description),
              due_date = COALESCE($3, due_date), onedrive_link = COALESCE($4, onedrive_link),
-             assigned_to_type = COALESCE($5, assigned_to_type)
-         WHERE id = $6 RETURNING *`,
-        [title, description, due_date, onedrive_link, assigned_to_type, assignmentId]
+             assigned_to_type = COALESCE($5, assigned_to_type),
+             course_id = COALESCE($6, course_id)
+         WHERE id = $7 RETURNING *`,
+        [title, description, due_date, onedrive_link, assigned_to_type, course_id ?? null, assignmentId]
       );
 
       if (assigned_to_type || group_ids) {
@@ -149,23 +151,48 @@ export async function deleteAssignment(req: Request, res: Response): Promise<voi
 }
 
 // GET /api/assignments  (role-aware)
+// Supports optional ?course_id=X query param to filter by course
 export async function listAssignments(req: Request, res: Response): Promise<void> {
+  const courseId = req.query.course_id ? parseInt(req.query.course_id as string, 10) : null;
+
   try {
     let query: string, params: unknown[];
 
     if (req.user!.role === 'admin') {
-      query = `SELECT a.*, u.name AS creator_name FROM assignments a
-               JOIN users u ON u.id = a.created_by
-               WHERE a.created_by = $1 ORDER BY a.created_at DESC`;
-      params = [req.user!.id];
+      if (courseId) {
+        query = `SELECT a.*, u.name AS creator_name FROM assignments a
+                 JOIN users u ON u.id = a.created_by
+                 WHERE a.created_by = $1 AND a.course_id = $2
+                 ORDER BY a.created_at DESC`;
+        params = [req.user!.id, courseId];
+      } else {
+        query = `SELECT a.*, u.name AS creator_name FROM assignments a
+                 JOIN users u ON u.id = a.created_by
+                 WHERE a.created_by = $1 ORDER BY a.created_at DESC`;
+        params = [req.user!.id];
+      }
     } else {
-      query = `SELECT DISTINCT a.*, u.name AS creator_name FROM assignments a
-               JOIN users u ON u.id = a.created_by
-               LEFT JOIN assignment_groups ag ON ag.assignment_id = a.id
-               LEFT JOIN group_members gm ON gm.group_id = ag.group_id AND gm.user_id = $1
-               WHERE a.assigned_to_type = 'all' OR gm.user_id = $1
-               ORDER BY a.created_at DESC`;
-      params = [req.user!.id];
+      if (courseId) {
+        // Student: assignments in a specific course they are enrolled in
+        query = `SELECT DISTINCT a.*, u.name AS creator_name FROM assignments a
+                 JOIN users u ON u.id = a.created_by
+                 JOIN course_enrollments ce ON ce.course_id = a.course_id AND ce.student_id = $1
+                 LEFT JOIN assignment_groups ag ON ag.assignment_id = a.id
+                 LEFT JOIN group_members gm ON gm.group_id = ag.group_id AND gm.user_id = $1
+                 WHERE a.course_id = $2
+                   AND (a.assigned_to_type = 'all' OR gm.user_id = $1)
+                 ORDER BY a.created_at DESC`;
+        params = [req.user!.id, courseId];
+      } else {
+        // Student: all accessible assignments (original Task 1 logic)
+        query = `SELECT DISTINCT a.*, u.name AS creator_name FROM assignments a
+                 JOIN users u ON u.id = a.created_by
+                 LEFT JOIN assignment_groups ag ON ag.assignment_id = a.id
+                 LEFT JOIN group_members gm ON gm.group_id = ag.group_id AND gm.user_id = $1
+                 WHERE a.assigned_to_type = 'all' OR gm.user_id = $1
+                 ORDER BY a.created_at DESC`;
+        params = [req.user!.id];
+      }
     }
 
     const result = await pool.query(query, params);

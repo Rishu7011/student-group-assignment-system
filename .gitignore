@@ -10,7 +10,7 @@ backend/.env
 
 # Planning docs (internal only)
 plan.md
-phases.md
+phase.md
 
 # Use bun.lockb instead of npm lockfiles
 package-lock.json

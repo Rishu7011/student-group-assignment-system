@@ -1,7 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
   GraduationCap,
   LayoutDashboard,
@@ -12,8 +11,14 @@ import {
   ChevronRight,
   ShieldCheck,
   Menu,
-  X,
+  ChevronLeft,
 } from 'lucide-react'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from './ui/sheet'
 
 interface NavItem {
   to: string
@@ -42,7 +47,25 @@ const ADMIN_NAV: NavItem[] = [
 export default function Sidebar({ children }: SidebarProps) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+
+  // Collapsed state stored in localStorage
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('sgas_sidebar_collapsed') === 'true'
+    } catch {
+      return false
+    }
+  })
+
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('sgas_sidebar_collapsed', String(collapsed))
+    } catch {
+      // ignore
+    }
+  }, [collapsed])
 
   const navItems = user?.role === 'admin' ? ADMIN_NAV : STUDENT_NAV
 
@@ -51,252 +74,324 @@ export default function Sidebar({ children }: SidebarProps) {
     navigate('/login', { replace: true })
   }
 
-  const renderNavContent = () => (
-    <>
-      {/* Logo */}
-      <div
-        style={{
-          padding: '1.25rem 1rem',
-          borderBottom: '1px solid var(--color-outline-variant)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.625rem',
-        }}
-      >
+  const renderNavContent = (isDrawer = false) => {
+    const isIconOnly = collapsed && !isDrawer
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
+        {/* Brand Header */}
         <div
           style={{
-            width: '2rem',
-            height: '2rem',
-            borderRadius: '0.5rem',
-            backgroundColor: 'var(--color-primary)',
+            padding: isIconOnly ? '1rem 0' : '1.15rem 1rem',
+            borderBottom: '1px solid #e5e5e0',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
+            justifyContent: isIconOnly ? 'center' : 'space-between',
+            minHeight: '64px',
           }}
         >
-          <GraduationCap size={16} color="white" />
-        </div>
-        <div style={{ flex: 1 }}>
-          <span
-            style={{
-              fontWeight: 700,
-              fontSize: '1rem',
-              color: 'var(--color-on-surface)',
-              letterSpacing: '-0.01em',
-              display: 'block',
-              lineHeight: 1.2,
-            }}
-          >
-            GroupSync
-          </span>
-          <span
-            style={{
-              fontSize: '0.7rem',
-              fontWeight: 600,
-              color: 'var(--color-primary)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-            }}
-          >
-            {user?.role === 'admin' ? 'Admin' : 'Student'}
-          </span>
-        </div>
-        {/* Mobile close button inside drawer */}
-        <button
-          className="mobile-only-close"
-          onClick={() => setMobileOpen(false)}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--color-on-surface-variant)',
-            cursor: 'pointer',
-            padding: '0.25rem',
-            display: 'none',
-          }}
-        >
-          <X size={20} />
-        </button>
-      </div>
+          {isIconOnly ? (
+            /* Collapsed Header: Centered Toggle Logo Button */
+            <button
+              id="btn-expand-sidebar"
+              title="Click to expand sidebar"
+              aria-label="Click to expand sidebar"
+              onClick={() => setCollapsed(false)}
+              className="hover-lift"
+              style={{
+                width: '2.25rem',
+                height: '2.25rem',
+                borderRadius: '0.375rem',
+                backgroundColor: '#191919',
+                color: 'white',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                position: 'relative',
+              }}
+            >
+              <GraduationCap size={17} color="white" />
+            </button>
+          ) : (
+            /* Expanded Header: Brand Title + Clean Collapse Icon */
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', minWidth: 0 }}>
+                <div
+                  style={{
+                    width: '2rem',
+                    height: '2rem',
+                    borderRadius: '0.375rem',
+                    backgroundColor: '#191919',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <GraduationCap size={16} color="white" />
+                </div>
+                <div style={{ minWidth: 0, overflow: 'hidden' }}>
+                  <span
+                    style={{
+                      fontWeight: 700,
+                      fontSize: '0.95rem',
+                      color: '#191919',
+                      letterSpacing: '-0.01em',
+                      display: 'block',
+                      lineHeight: 1.2,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    GroupSync
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '0.68rem',
+                      fontWeight: 600,
+                      color: '#6b6b66',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    Academic Hub
+                  </span>
+                </div>
+              </div>
 
-      {/* Role badge */}
-      {user?.role === 'admin' && (
-        <div
-          style={{
-            margin: '0.75rem 1rem 0',
-            padding: '0.5rem 0.75rem',
-            borderRadius: '0.5rem',
-            backgroundColor: 'var(--color-primary-fixed)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            color: 'var(--color-primary)',
-          }}
-        >
-          <ShieldCheck size={14} />
-          Administrator
+              {!isDrawer && (
+                <button
+                  id="btn-collapse-sidebar"
+                  title="Collapse sidebar"
+                  aria-label="Collapse sidebar"
+                  onClick={() => setCollapsed(true)}
+                  style={{
+                    background: '#f1f1ef',
+                    border: '1px solid #e5e5e0',
+                    color: '#6b6b66',
+                    cursor: 'pointer',
+                    width: '1.75rem',
+                    height: '1.75rem',
+                    borderRadius: '0.375rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#e5e5e0'
+                    e.currentTarget.style.color = '#191919'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#f1f1ef'
+                    e.currentTarget.style.color = '#6b6b66'
+                  }}
+                >
+                  <ChevronLeft size={16} />
+                </button>
+              )}
+            </>
+          )}
         </div>
-      )}
 
-      {/* Nav items */}
-      <nav style={{ padding: '0.75rem 0.75rem', flex: 1 }}>
-        <p
-          style={{
-            fontSize: '0.7rem',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-            color: 'var(--color-on-surface-variant)',
-            padding: '0 0.25rem',
-            marginBottom: '0.5rem',
-          }}
-        >
-          {user?.role === 'admin' ? 'Management' : 'Navigation'}
-        </p>
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            id={item.id}
-            onClick={() => setMobileOpen(false)}
-            style={({ isActive }) => ({
+        {/* Role badge */}
+        {user?.role === 'admin' && (
+          <div
+            style={{
+              margin: isIconOnly ? '0.75rem 0.5rem 0' : '0.75rem 0.875rem 0',
+              padding: isIconOnly ? '0.45rem 0' : '0.4rem 0.625rem',
+              borderRadius: '0.375rem',
+              backgroundColor: '#f1f1ef',
+              border: '1px solid #e5e5e0',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.625rem',
-              padding: '0.625rem 0.75rem',
-              borderRadius: '0.5rem',
-              marginBottom: '0.125rem',
-              fontSize: '0.875rem',
-              fontWeight: isActive ? 600 : 500,
-              color: isActive ? 'var(--color-primary)' : 'var(--color-on-surface-variant)',
-              backgroundColor: isActive ? 'var(--color-primary-fixed)' : 'transparent',
-              textDecoration: 'none',
-              transition: 'all 0.15s',
-            })}
-            onMouseEnter={(e) => {
-              const el = e.currentTarget
-              if (!el.getAttribute('aria-current')) {
-                el.style.backgroundColor = 'var(--color-surface-container)'
-                el.style.color = 'var(--color-on-surface)'
-              }
+              justifyContent: isIconOnly ? 'center' : 'flex-start',
+              gap: '0.5rem',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              color: '#191919',
             }}
-            onMouseLeave={(e) => {
-              const el = e.currentTarget
-              const isActive = el.getAttribute('aria-current') === 'page'
-              if (!isActive) {
-                el.style.backgroundColor = 'transparent'
-                el.style.color = 'var(--color-on-surface-variant)'
-              }
-            }}
+            title={isIconOnly ? 'Administrator / Professor' : undefined}
           >
-            {item.icon}
-            <span style={{ flex: 1 }}>{item.label}</span>
-            <ChevronRight size={14} style={{ opacity: 0.4 }} />
-          </NavLink>
-        ))}
-      </nav>
+            <ShieldCheck size={14} color="#6b21a8" />
+            {!isIconOnly && <span>Administrator / Professor</span>}
+          </div>
+        )}
 
-      {/* User profile + logout */}
-      <div
-        style={{
-          padding: '1rem',
-          borderTop: '1px solid var(--color-outline-variant)',
-        }}
-      >
+        {/* Navigation list */}
+        <nav style={{ padding: isIconOnly ? '0.75rem 0.5rem' : '0.75rem 0.75rem', flex: 1, overflowY: 'auto' }}>
+          {!isIconOnly && (
+            <p
+              style={{
+                fontSize: '0.68rem',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                color: '#6b6b66',
+                padding: '0 0.25rem',
+                marginBottom: '0.5rem',
+              }}
+            >
+              {user?.role === 'admin' ? 'Management' : 'Navigation'}
+            </p>
+          )}
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              id={item.id}
+              onClick={() => isDrawer && setMobileOpen(false)}
+              title={isIconOnly ? item.label : undefined}
+              style={({ isActive }) => ({
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: isIconOnly ? 'center' : 'flex-start',
+                gap: '0.625rem',
+                padding: isIconOnly ? '0.65rem 0' : '0.55rem 0.75rem',
+                borderRadius: '0.375rem',
+                marginBottom: '0.25rem',
+                fontSize: '0.85rem',
+                fontWeight: isActive ? 600 : 500,
+                color: isActive ? '#191919' : '#6b6b66',
+                backgroundColor: isActive ? '#f1f1ef' : 'transparent',
+                border: isActive ? '1px solid #e5e5e0' : '1px solid transparent',
+                textDecoration: 'none',
+                transition: 'all 0.15s',
+              })}
+              onMouseEnter={(e) => {
+                const el = e.currentTarget
+                if (!el.getAttribute('aria-current')) {
+                  el.style.backgroundColor = '#f7f7f5'
+                  el.style.color = '#191919'
+                }
+              }}
+              onMouseLeave={(e) => {
+                const el = e.currentTarget
+                const isActive = el.getAttribute('aria-current') === 'page'
+                if (!isActive) {
+                  el.style.backgroundColor = 'transparent'
+                  el.style.color = '#6b6b66'
+                }
+              }}
+            >
+              {item.icon}
+              {!isIconOnly && <span style={{ flex: 1 }}>{item.label}</span>}
+              {!isIconOnly && <ChevronRight size={14} style={{ opacity: 0.3 }} />}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* User profile + sign out footer */}
         <div
           style={{
+            padding: isIconOnly ? '0.75rem 0.5rem' : '0.875rem',
+            borderTop: '1px solid #e5e5e0',
+            backgroundColor: '#fcfcfb',
             display: 'flex',
-            alignItems: 'center',
-            gap: '0.625rem',
-            marginBottom: '0.75rem',
-            padding: '0.5rem',
-            borderRadius: '0.5rem',
-            backgroundColor: 'var(--color-surface-container)',
+            flexDirection: 'column',
+            alignItems: isIconOnly ? 'center' : 'stretch',
           }}
         >
           <div
             style={{
-              width: '2rem',
-              height: '2rem',
-              borderRadius: '50%',
-              backgroundColor: user?.role === 'admin' ? 'var(--color-primary)' : 'var(--color-primary-fixed)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: isIconOnly ? 'center' : 'flex-start',
+              gap: '0.625rem',
+              marginBottom: '0.75rem',
+              padding: isIconOnly ? '0' : '0.4rem',
+              borderRadius: '0.375rem',
+            }}
+            title={isIconOnly ? `${user?.name} (${user?.email})` : undefined}
+          >
+            <div
+              style={{
+                width: '2rem',
+                height: '2rem',
+                borderRadius: '50%',
+                backgroundColor: user?.role === 'admin' ? '#191919' : '#6b21a8',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 700,
+                fontSize: '0.8rem',
+                color: 'white',
+                flexShrink: 0,
+              }}
+            >
+              {user?.name?.charAt(0).toUpperCase() ?? '?'}
+            </div>
+            {!isIconOnly && (
+              <div style={{ overflow: 'hidden' }}>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: '#191919',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {user?.name}
+                </p>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: '0.68rem',
+                    color: '#6b6b66',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {user?.email}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <button
+            id="sidebar-logout"
+            onClick={handleLogout}
+            title="Sign Out"
+            style={{
+              width: '100%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontWeight: 700,
-              fontSize: '0.8rem',
-              color: user?.role === 'admin' ? 'white' : 'var(--color-primary)',
-              flexShrink: 0,
+              gap: '0.375rem',
+              padding: isIconOnly ? '0.5rem 0' : '0.45rem',
+              fontSize: '0.78rem',
+              fontWeight: 500,
+              color: '#6b6b66',
+              backgroundColor: 'transparent',
+              border: '1px solid #e5e5e0',
+              borderRadius: '0.375rem',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#fee2e2'
+              e.currentTarget.style.color = '#991b1b'
+              e.currentTarget.style.borderColor = '#fca5a5'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.color = '#6b6b66'
+              e.currentTarget.style.borderColor = '#e5e5e0'
             }}
           >
-            {user?.name?.charAt(0).toUpperCase() ?? '?'}
-          </div>
-          <div style={{ overflow: 'hidden' }}>
-            <p
-              style={{
-                margin: 0,
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                color: 'var(--color-on-surface)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {user?.name}
-            </p>
-            <p
-              style={{
-                margin: 0,
-                fontSize: '0.7rem',
-                color: 'var(--color-on-surface-variant)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {user?.email}
-            </p>
-          </div>
+            <LogOut size={14} />
+            {!isIconOnly && <span>Sign Out</span>}
+          </button>
         </div>
-        <button
-          id="sidebar-logout"
-          onClick={handleLogout}
-          style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.375rem',
-            padding: '0.5rem',
-            fontSize: '0.8rem',
-            fontWeight: 500,
-            color: 'var(--color-on-surface-variant)',
-            backgroundColor: 'transparent',
-            border: '1px solid var(--color-outline-variant)',
-            borderRadius: '0.5rem',
-            cursor: 'pointer',
-            transition: 'all 0.15s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--color-error-container)'
-            e.currentTarget.style.color = 'var(--color-error)'
-            e.currentTarget.style.borderColor = 'var(--color-error)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent'
-            e.currentTarget.style.color = 'var(--color-on-surface-variant)'
-            e.currentTarget.style.borderColor = 'var(--color-outline-variant)'
-          }}
-        >
-          <LogOut size={14} />
-          Sign Out
-        </button>
       </div>
-    </>
-  )
+    )
+  }
 
   return (
     <div
@@ -304,11 +399,11 @@ export default function Sidebar({ children }: SidebarProps) {
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor: 'var(--color-surface-container-low)',
+        backgroundColor: '#f7f7f5',
         fontFamily: 'var(--font-sans)',
       }}
     >
-      {/* ── Mobile Top Header Bar (< 768px) ────────────────────────────────── */}
+      {/* ── Mobile Header Bar (< 768px for Phone & Compact Tablets) ── */}
       <header
         className="sgas-mobile-header"
         style={{
@@ -316,8 +411,8 @@ export default function Sidebar({ children }: SidebarProps) {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0.75rem 1rem',
-          backgroundColor: 'var(--color-surface-container-lowest)',
-          borderBottom: '1px solid var(--color-outline-variant)',
+          backgroundColor: '#ffffff',
+          borderBottom: '1px solid #e5e5e0',
           position: 'sticky',
           top: 0,
           zIndex: 40,
@@ -329,7 +424,7 @@ export default function Sidebar({ children }: SidebarProps) {
               width: '1.75rem',
               height: '1.75rem',
               borderRadius: '0.375rem',
-              backgroundColor: 'var(--color-primary)',
+              backgroundColor: '#191919',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -337,7 +432,7 @@ export default function Sidebar({ children }: SidebarProps) {
           >
             <GraduationCap size={14} color="white" />
           </div>
-          <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--color-on-surface)' }}>
+          <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#191919' }}>
             GroupSync
           </span>
           <span
@@ -346,8 +441,8 @@ export default function Sidebar({ children }: SidebarProps) {
               fontWeight: 700,
               padding: '0.1rem 0.4rem',
               borderRadius: '9999px',
-              backgroundColor: 'var(--color-primary-fixed)',
-              color: 'var(--color-primary)',
+              backgroundColor: '#f1f1ef',
+              color: '#191919',
               textTransform: 'uppercase',
             }}
           >
@@ -358,32 +453,32 @@ export default function Sidebar({ children }: SidebarProps) {
         <button
           id="btn-mobile-menu-toggle"
           aria-label="Toggle navigation menu"
-          onClick={() => setMobileOpen((o) => !o)}
+          onClick={() => setMobileOpen(true)}
           style={{
             background: 'none',
-            border: '1px solid var(--color-outline-variant)',
-            borderRadius: '0.5rem',
+            border: '1px solid #e5e5e0',
+            borderRadius: '0.375rem',
             padding: '0.4rem',
-            color: 'var(--color-on-surface)',
+            color: '#191919',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          <Menu size={18} />
         </button>
       </header>
 
-      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-        {/* ── Desktop Sidebar (>= 768px) ─────────────────────────────────────── */}
+      <div style={{ display: 'flex', flex: 1, minHeight: 0, position: 'relative' }}>
+        {/* ── Desktop & iPad Sidebar (>= 768px) ── */}
         <aside
           className="sgas-desktop-sidebar"
           style={{
-            width: '240px',
+            width: collapsed ? '64px' : '240px',
             minHeight: '100vh',
-            backgroundColor: 'var(--color-surface-container-lowest)',
-            borderRight: '1px solid var(--color-outline-variant)',
+            backgroundColor: '#ffffff',
+            borderRight: '1px solid #e5e5e0',
             display: 'flex',
             flexDirection: 'column',
             flexShrink: 0,
@@ -392,61 +487,31 @@ export default function Sidebar({ children }: SidebarProps) {
             alignSelf: 'flex-start',
             height: '100vh',
             overflowY: 'auto',
+            transition: 'width 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
-          {renderNavContent()}
+          {renderNavContent(false)}
         </aside>
 
-        {/* ── Mobile Drawer (Animated) ───────────────────────────────────────── */}
-        <AnimatePresence>
-          {mobileOpen && (
-            <>
-              {/* Backdrop */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                onClick={() => setMobileOpen(false)}
-                style={{
-                  position: 'fixed',
-                  inset: 0,
-                  backgroundColor: 'rgba(0, 0, 0, 0.45)',
-                  backdropFilter: 'blur(4px)',
-                  zIndex: 50,
-                }}
-              />
+        {/* ── Mobile shadcn Sheet Drawer ── */}
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetContent side="left" className="p-0 w-72 max-w-[85vw] bg-white">
+            <SheetHeader className="sr-only">
+              <SheetTitle>Navigation Menu</SheetTitle>
+            </SheetHeader>
+            {renderNavContent(true)}
+          </SheetContent>
+        </Sheet>
 
-              {/* Drawer */}
-              <motion.aside
-                initial={{ x: '-100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '-100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 280 }}
-                style={{
-                  position: 'fixed',
-                  top: 0,
-                  bottom: 0,
-                  left: 0,
-                  width: '280px',
-                  maxWidth: '85vw',
-                  backgroundColor: 'var(--color-surface-container-lowest)',
-                  borderRight: '1px solid var(--color-outline-variant)',
-                  zIndex: 51,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-                  overflowY: 'auto',
-                }}
-              >
-                {renderNavContent()}
-              </motion.aside>
-            </>
-          )}
-        </AnimatePresence>
-
-        {/* ── Page content ───────────────────────────────────────────────────── */}
-        <main style={{ flex: 1, minWidth: 0, overflowY: 'auto' }}>
+        {/* ── Main Page Content ── */}
+        <main
+          style={{
+            flex: 1,
+            minWidth: 0,
+            overflowY: 'auto',
+            transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
+        >
           {children}
         </main>
       </div>
@@ -458,9 +523,6 @@ export default function Sidebar({ children }: SidebarProps) {
           }
           .sgas-mobile-header {
             display: flex !important;
-          }
-          .mobile-only-close {
-            display: block !important;
           }
         }
       `}</style>

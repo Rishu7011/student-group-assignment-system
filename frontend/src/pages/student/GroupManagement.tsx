@@ -325,8 +325,8 @@ export default function GroupManagement() {
                                     <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-on-surface-variant)' }}>{m.email}</p>
                                   </div>
                                   {isMemberCreator && (
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.7rem', color: 'var(--color-primary)', fontWeight: 600 }}>
-                                      <Crown size={12} /> Creator
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.72rem', color: '#7c3aed', backgroundColor: '#ede9fe', padding: '0.2rem 0.5rem', borderRadius: '9999px', fontWeight: 700 }}>
+                                      <Crown size={12} color="#eab308" /> Group Leader
                                     </span>
                                   )}
                                   {canRemove && (

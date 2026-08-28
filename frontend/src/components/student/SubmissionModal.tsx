@@ -13,6 +13,8 @@ interface SubmissionModalProps {
   assignmentTitle: string
   groupId: number
   groupName: string
+  isLeader?: boolean
+  leaderName?: string
   currentStatus: SubmissionStatus
   onStatusChange: (newStatus: SubmissionStatus) => void
 }
@@ -24,6 +26,8 @@ export default function SubmissionModal({
   assignmentTitle,
   groupId,
   groupName,
+  isLeader = true,
+  leaderName = 'Leader',
   currentStatus,
   onStatusChange,
 }: SubmissionModalProps) {
@@ -522,20 +526,40 @@ export default function SubmissionModal({
                       })}
                     </div>
 
+                    {!isLeader ? (
+                      <div
+                        style={{
+                          padding: '1rem',
+                          borderRadius: '0.625rem',
+                          backgroundColor: '#ede9fe',
+                          border: '1.5px solid #c4b5fd',
+                          marginBottom: '1rem',
+                          textAlign: 'center',
+                        }}
+                      >
+                        <p style={{ margin: '0 0 0.25rem', fontWeight: 700, color: '#5b21b6', fontSize: '0.875rem' }}>
+                          👑 Group Leader Action Required
+                        </p>
+                        <p style={{ margin: 0, fontSize: '0.8rem', color: '#6d28d9', lineHeight: 1.5 }}>
+                          Step 1 has been recorded! Only <strong>{leaderName}</strong> (Group Leader) can execute the final Step 2 confirmation on behalf of the group.
+                        </p>
+                      </div>
+                    ) : null}
+
                     <button
                       id="btn-step2-confirm"
                       onClick={handleStep2}
-                      disabled={!allFinalChecked || loading}
+                      disabled={!allFinalChecked || loading || !isLeader}
                       style={{
                         width: '100%',
                         padding: '0.75rem',
                         borderRadius: '0.625rem',
                         border: 'none',
-                        backgroundColor: !allFinalChecked || loading ? 'var(--color-surface-container-high)' : '#16a34a',
-                        color: !allFinalChecked || loading ? 'var(--color-on-surface-variant)' : 'white',
+                        backgroundColor: !allFinalChecked || loading || !isLeader ? 'var(--color-surface-container-high)' : '#16a34a',
+                        color: !allFinalChecked || loading || !isLeader ? 'var(--color-on-surface-variant)' : 'white',
                         fontSize: '0.9rem',
                         fontWeight: 600,
-                        cursor: !allFinalChecked || loading ? 'not-allowed' : 'pointer',
+                        cursor: !allFinalChecked || loading || !isLeader ? 'not-allowed' : 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -543,8 +567,18 @@ export default function SubmissionModal({
                         transition: 'all 0.2s',
                       }}
                     >
-                      {loading ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <Lock size={18} />}
-                      {loading ? 'Submitting…' : 'Lock In Final Submission'}
+                      {loading ? (
+                        <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+                      ) : !isLeader ? (
+                        <Lock size={18} />
+                      ) : (
+                        <Lock size={18} />
+                      )}
+                      {loading
+                        ? 'Submitting…'
+                        : !isLeader
+                        ? `Waiting for ${leaderName} to Confirm`
+                        : 'Lock In Final Submission'}
                     </button>
                   </motion.div>
                 )}

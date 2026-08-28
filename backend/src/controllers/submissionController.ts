@@ -9,6 +9,20 @@ async function assertGroupMember(userId: number, groupId: number): Promise<boole
   return result.rows.length > 0;
 }
 
+/** Returns the group row (id, leader_id) if the user is the leader, or null. */
+async function assertGroupLeader(
+  userId: number,
+  groupId: number
+): Promise<{ id: number; leader_id: number } | null> {
+  const result = await pool.query(
+    `SELECT id, leader_id FROM groups WHERE id = $1`,
+    [groupId]
+  );
+  if (result.rows.length === 0) return null;
+  const group = result.rows[0] as { id: number; leader_id: number };
+  return group.leader_id === userId ? group : null;
+}
+
 // POST /api/submissions/:assignmentId/step1
 export async function stepOne(req: Request, res: Response): Promise<void> {
   const assignmentId = parseInt(req.params.assignmentId, 10);
@@ -77,8 +91,17 @@ export async function stepTwo(req: Request, res: Response): Promise<void> {
   if (!group_id) { res.status(400).json({ error: 'group_id is required' }); return; }
 
   try {
+    // Step 2 is leader-only — verify membership first, then leadership
     const isMember = await assertGroupMember(req.user!.id, group_id);
     if (!isMember) { res.status(403).json({ error: 'You are not a member of this group' }); return; }
+
+    const isLeader = await assertGroupLeader(req.user!.id, group_id);
+    if (!isLeader) {
+      res.status(403).json({
+        error: 'Only the group leader can confirm the final submission.',
+      });
+      return;
+    }
 
     const result = await pool.query(
       `UPDATE submissions

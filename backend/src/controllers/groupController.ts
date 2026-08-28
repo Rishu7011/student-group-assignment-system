@@ -21,7 +21,8 @@ export async function createGroup(req: Request, res: Response): Promise<void> {
   try {
     await client.query('BEGIN');
     const groupResult = await client.query(
-      `INSERT INTO groups (name, created_by) VALUES ($1, $2) RETURNING *`,
+      // leader_id defaults to the creator (Round 2 requirement)
+      `INSERT INTO groups (name, created_by, leader_id) VALUES ($1, $2, $2) RETURNING *`,
       [name.trim(), req.user!.id]
     );
     const group = groupResult.rows[0];
@@ -141,18 +142,24 @@ export async function getGroupById(req: Request, res: Response): Promise<void> {
     }
 
     const groupResult = await pool.query(
-      `SELECT id, name, created_by, created_at FROM groups WHERE id = $1`, [groupId]
+      `SELECT id, name, created_by, leader_id, created_at FROM groups WHERE id = $1`, [groupId]
     );
     if (groupResult.rows.length === 0) {
       res.status(404).json({ error: 'Group not found' }); return;
     }
 
+    const groupRow = groupResult.rows[0] as {
+      id: number; name: string; created_by: number;
+      leader_id: number; created_at: string;
+    };
+
     const membersResult = await pool.query(
-      `SELECT u.id, u.name, u.email, u.role, gm.joined_at
+      `SELECT u.id, u.name, u.email, u.role, gm.joined_at,
+              (u.id = $2) AS "isLeader"
        FROM group_members gm
        JOIN users u ON u.id = gm.user_id
        WHERE gm.group_id = $1`,
-      [groupId]
+      [groupId, groupRow.leader_id]
     );
 
     const progressResult = await pool.query(
@@ -170,9 +177,13 @@ export async function getGroupById(req: Request, res: Response): Promise<void> {
     const completion_rate =
       total_assignments > 0 ? Math.round((confirmed_count / total_assignments) * 100) : 0;
 
+    // isLeader: true if the requesting user is the group leader
+    const isLeader = req.user!.id === groupRow.leader_id;
+
     res.status(200).json({
       group: {
-        ...groupResult.rows[0],
+        ...groupRow,
+        isLeader,
         members: membersResult.rows,
         progress: { total_assignments, confirmed_count, completion_rate },
       },
