@@ -453,15 +453,15 @@ export default function SubmissionModal({
                 {step === 2 && (
                   <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.25 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                      <div style={{ padding: '0.625rem', borderRadius: '0.625rem', backgroundColor: '#fef3c7' }}>
-                        <AlertTriangle size={20} color="#d97706" />
+                      <div style={{ padding: '0.625rem', borderRadius: '0.625rem', backgroundColor: '#e0f2fe' }}>
+                        <CheckCircle2 size={20} color="#0284c7" />
                       </div>
                       <div>
                         <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--color-on-surface)' }}>
                           Final Submission Confirmation
                         </h3>
                         <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-on-surface-variant)' }}>
-                          Step 2 of 2 — This action is irreversible
+                          Step 2 of 2 — Submits team deliverable for instructor evaluation
                         </p>
                       </div>
                     </div>
@@ -477,22 +477,22 @@ export default function SubmissionModal({
                       style={{
                         padding: '0.75rem 1rem',
                         borderRadius: '0.625rem',
-                        backgroundColor: '#fef3c7',
-                        border: '1px solid #fcd34d',
+                        backgroundColor: '#f0fdf4',
+                        border: '1px solid #bbf7d0',
                         fontSize: '0.8rem',
-                        color: '#92400e',
+                        color: '#166534',
                         marginBottom: '1rem',
                         lineHeight: 1.6,
                       }}
                     >
-                      ⚠️ Once confirmed, your submission will be <strong>locked</strong>. Confirm all items below before proceeding.
+                      ✓ Once confirmed, your work is submitted to the professor. Your group leader can retract and edit this submission at any time prior to grading.
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginBottom: '1.25rem' }}>
                       {[
                         { key: 'correct_file', label: 'The correct and final version of our work is attached and uploaded.' },
-                        { key: 'team_reviewed', label: 'All team members have reviewed the submission.' },
-                        { key: 'no_more_changes', label: 'We understand this submission cannot be changed after confirmation.' },
+                        { key: 'team_reviewed', label: 'All team members have reviewed the deliverable.' },
+                        { key: 'no_more_changes', label: 'We are ready to submit this final deliverable for review.' },
                       ].map(({ key, label }) => {
                         const checked = finalChecks[key as keyof typeof finalChecks]
                         return (
@@ -572,13 +572,13 @@ export default function SubmissionModal({
                       ) : !isLeader ? (
                         <Lock size={18} />
                       ) : (
-                        <Lock size={18} />
+                        <CheckCircle2 size={18} />
                       )}
                       {loading
                         ? 'Submitting…'
                         : !isLeader
                         ? `Waiting for ${leaderName} to Confirm`
-                        : 'Lock In Final Submission'}
+                        : 'Confirm & Submit Deliverable'}
                     </button>
                   </motion.div>
                 )}

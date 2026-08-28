@@ -56,20 +56,21 @@ export async function stepOne(req: Request, res: Response): Promise<void> {
       );
       const row = existing.rows[0];
       if (row?.status === 'confirmed') {
-        if (row.review_status === 'rejected') {
-          // Allow resubmission when rejected
+        if (row.review_status !== 'accepted') {
+          // Allow resubmission/re-upload when not yet accepted
           const resetResult = await pool.query(
             `UPDATE submissions
              SET status = 'pending_confirmation', review_status = 'pending', review_feedback = null,
-                 file_url = COALESCE($3, submissions.file_url)
+                 file_url = COALESCE($3, submissions.file_url),
+                 confirmed_by = NULL, confirmed_at = NULL
              WHERE assignment_id = $1 AND group_id = $2
              RETURNING *`,
             [assignmentId, group_id, file_url ?? null]
           );
-          res.status(200).json({ message: 'Resubmission started. Proceed to step 2.', submission: resetResult.rows[0] });
+          res.status(200).json({ message: 'Deliverable revised. Proceed to step 2 to confirm.', submission: resetResult.rows[0] });
           return;
         }
-        res.status(409).json({ error: 'Submission is already confirmed' });
+        res.status(409).json({ error: 'Submission has already been accepted and graded.' });
         return;
       }
       res.status(200).json({ message: 'Step 1 already completed. Proceed to step 2.', submission: existing.rows[0] });
@@ -129,6 +130,58 @@ export async function stepTwo(req: Request, res: Response): Promise<void> {
     res.status(200).json({ message: 'Submission confirmed successfully.', submission: result.rows[0] });
   } catch (err) {
     console.error('stepTwo error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+// POST /api/submissions/:assignmentId/unsubmit (student leader)
+export async function unsubmitSubmission(req: Request, res: Response): Promise<void> {
+  const assignmentId = parseInt(req.params.assignmentId, 10);
+  const { group_id } = req.body as { group_id?: number };
+
+  if (!group_id) { res.status(400).json({ error: 'group_id is required' }); return; }
+
+  try {
+    const isMember = await assertGroupMember(req.user!.id, group_id);
+    if (!isMember) { res.status(403).json({ error: 'You are not a member of this group' }); return; }
+
+    const isLeader = await assertGroupLeader(req.user!.id, group_id);
+    if (!isLeader) {
+      res.status(403).json({ error: 'Only the group leader can unsubmit or retract deliverables.' });
+      return;
+    }
+
+    const existing = await pool.query(
+      `SELECT status, review_status FROM submissions WHERE assignment_id = $1 AND group_id = $2`,
+      [assignmentId, group_id]
+    );
+    if (existing.rows.length === 0 || existing.rows[0].status === 'pending') {
+      res.status(400).json({ error: 'No submission found to unsubmit.' });
+      return;
+    }
+
+    if (existing.rows[0].review_status === 'accepted') {
+      res.status(400).json({ error: 'Cannot unsubmit a deliverable that has already been graded and accepted.' });
+      return;
+    }
+
+    const result = await pool.query(
+      `UPDATE submissions
+       SET status = 'pending_confirmation',
+           confirmed_by = NULL,
+           confirmed_at = NULL,
+           review_status = 'pending'
+       WHERE assignment_id = $1 AND group_id = $2
+       RETURNING *`,
+      [assignmentId, group_id]
+    );
+
+    res.status(200).json({
+      message: 'Submission retracted successfully. Your team can now edit and resubmit.',
+      submission: result.rows[0],
+    });
+  } catch (err) {
+    console.error('unsubmitSubmission error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 }

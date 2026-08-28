@@ -18,6 +18,7 @@ import {
   Send,
   Crown,
   GraduationCap,
+  RotateCcw,
 } from 'lucide-react'
 
 type SubmissionStatus = 'pending' | 'pending_confirmation' | 'confirmed'
@@ -74,6 +75,7 @@ export default function AssignmentDetail() {
   const [isLeader, setIsLeader] = useState(true)
   const [leaderName, setLeaderName] = useState<string>('Leader')
   const [loading, setLoading] = useState(true)
+  const [unsubmitting, setUnsubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
 
@@ -132,6 +134,22 @@ export default function AssignmentDetail() {
 
   const thisSubmission = groupSubs.find((s) => s.assignment_id === Number(id))
   const currentStatus = (thisSubmission?.status ?? 'pending') as SubmissionStatus
+
+  async function handleUnsubmit() {
+    if (!myGroup || !assignment) return
+    if (!window.confirm('Retract this submission? Your team will be able to edit, replace files, and re-confirm.')) return
+
+    setUnsubmitting(true)
+    try {
+      await apiClient.post(`/submissions/${id}/unsubmit`, { group_id: myGroup.id })
+      handleStatusChange('pending_confirmation')
+      await load()
+    } catch (err: any) {
+      alert(err.response?.data?.error ?? 'Failed to retract submission.')
+    } finally {
+      setUnsubmitting(false)
+    }
+  }
 
   function handleStatusChange(newStatus: SubmissionStatus) {
     setGroupSubs((prev) => {
@@ -267,16 +285,20 @@ export default function AssignmentDetail() {
               </div>
             )}
 
-            {/* Submission Status & Action Callout */}
-            <div className="gsap-assignment-fade notion-callout" style={{ padding: '1.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--color-on-surface)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  👥 Team Deliverable Status
-                  {myGroup && (
-                    <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--color-on-surface-variant)' }}>
-                      — {myGroup.name}
-                    </span>
-                  )}
+            {/* Submission Section */}
+            <div
+              className="gsap-assignment-fade"
+              style={{
+                backgroundColor: 'var(--color-surface-container-lowest)',
+                borderRadius: '0.75rem',
+                border: '1px solid var(--color-outline-variant)',
+                padding: '1.75rem',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--color-on-surface)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <FileText size={18} color="var(--color-primary)" />
+                  Group Deliverable Status
                 </h3>
                 {myGroup && (
                   <span className="tag-purple" style={{ fontSize: '0.72rem', fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: '9999px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
@@ -294,7 +316,7 @@ export default function AssignmentDetail() {
                       ? 'Grade: Accepted / Done ✓'
                       : thisSubmission?.review_status === 'rejected'
                       ? 'Submission Rejected by Professor'
-                      : 'Locked & Confirmed — Awaiting Professor Review'}
+                      : 'Confirmed & Submitted — Awaiting Professor Review'}
                   </div>
                   {thisSubmission?.review_feedback && (
                     <p style={{ margin: '0.35rem 0 0', fontSize: '0.82rem', color: thisSubmission.review_status === 'rejected' ? '#7f1d1d' : '#166534' }}>
@@ -305,7 +327,7 @@ export default function AssignmentDetail() {
               ) : currentStatus === 'pending_confirmation' ? (
                 <div style={{ padding: '0.875rem 1rem', borderRadius: '0.5rem', backgroundColor: '#f5f3ff', border: '1px solid #e9d5ff', color: '#6b21a8', marginBottom: '1.25rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Clock size={16} />
-                  Step 1 Completed. Ready for Step 2 final lock-in by <strong>{leaderName}</strong> (Group Leader).
+                  Step 1 Completed. Ready for Step 2 final confirmation by <strong>{leaderName}</strong> (Group Leader).
                 </div>
               ) : null}
 
@@ -318,8 +340,34 @@ export default function AssignmentDetail() {
                   </button>
                 </p>
               ) : currentStatus === 'confirmed' && thisSubmission?.review_status !== 'rejected' ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#15803d', fontWeight: 600, fontSize: '0.875rem' }}>
-                  <CheckCircle2 size={18} /> Final submission locked on {thisSubmission?.confirmed_at ? new Date(thisSubmission.confirmed_at).toLocaleDateString() : 'file'}.
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#15803d', fontWeight: 600, fontSize: '0.875rem' }}>
+                    <CheckCircle2 size={18} /> Final submission confirmed on {thisSubmission?.confirmed_at ? new Date(thisSubmission.confirmed_at).toLocaleDateString() : 'file'}.
+                  </div>
+                  {thisSubmission?.review_status !== 'accepted' && isLeader && (
+                    <button
+                      id="btn-unsubmit"
+                      onClick={handleUnsubmit}
+                      disabled={unsubmitting}
+                      className="hover-lift"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.375rem',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '0.375rem',
+                        backgroundColor: '#fee2e2',
+                        color: '#b91c1c',
+                        border: '1px solid #fca5a5',
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        cursor: unsubmitting ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      <RotateCcw size={14} />
+                      {unsubmitting ? 'Retracting…' : 'Retract & Edit Deliverable'}
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
@@ -346,7 +394,7 @@ export default function AssignmentDetail() {
                       ? 'Resubmit Revision'
                       : currentStatus === 'pending_confirmation'
                       ? isLeader
-                        ? 'Step 2: Lock In Final Submission'
+                        ? 'Step 2: Confirm Final Submission'
                         : `Step 2: View Status (Leader: ${leaderName})`
                       : 'Start Submission (Step 1 & 2)'}
                   </button>
