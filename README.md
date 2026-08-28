@@ -28,38 +28,7 @@
 
 It allows students to organize into collaborative teams, enroll in courses, upload project deliverables, and execute role-verified two-step submissions. Professors and administrators gain deep per-course analytics, automated assignment distribution, and grading/review workflows with live feedback loops.
 
----
 
-## 🚀 Round 2 Enhancements
-
-Building on the Round 1 base foundation, this version introduces major architectural, database, and functional upgrades:
-
-1. **Course-Centric Navigation & Organization**:
-   - Courses are now the primary navigational unit across the platform.
-   - Student dashboard displays active course cards with dynamic assignment countdown badges.
-   - Additive database schema migration (`courses`, `course_enrollments`, `assignments.course_id`).
-
-2. **Group Leader Acknowledgment & Authorization**:
-   - Distinct `leader_id` assigned to groups.
-   - **Two-Step Submission Flow**: Any team member can upload deliverables in Step 1, but only the **designated Group Leader** can execute the final Step 2 confirmation.
-   - Non-leader members see an explicit **"Waiting for Group Leader to Confirm"** status banner.
-
-3. **Reversible Submissions & Revision Workflow**:
-   - Group leaders can **retract and unsubmit** deliverables anytime before professor grading, resetting the assignment to draft status for easy revisions.
-   - Multi-step modal navigation allows jumping back to Step 1 to replace attached files seamlessly.
-   - Professor review status loop (`pending`, `accepted`, `rejected`) with feedback notes and resubmission triggers.
-
-4. **Professor Course Analytics Matrix**:
-   - Real-time aggregation of student enrollments, group distribution, submission statuses, and completion rates per course.
-   - Optimized PostgreSQL SQL aggregate queries for instantaneous reporting.
-
-5. **UI/UX & Branding Overhaul**:
-   - Inline form validation with clear real-time error states.
-   - Hardware-accelerated GPU spinners and micro-interactions.
-   - Custom **GroupSync** graduation emblem favicon and updated tab branding.
-   - In-app file upload support alongside cloud repository links.
-
----
 
 ## ✨ Feature Breakdown
 
