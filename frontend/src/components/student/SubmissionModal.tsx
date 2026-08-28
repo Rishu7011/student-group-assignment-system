@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import apiClient from '../../api/client'
 import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
-import { CheckCircle2, Upload, AlertTriangle, X, Loader2, Check, Lock, FileText, Paperclip } from 'lucide-react'
+import { CheckCircle2, Upload, AlertTriangle, X, Loader2, Check, Lock, FileText, Paperclip, ArrowLeft } from 'lucide-react'
 
 type SubmissionStatus = 'pending' | 'pending_confirmation' | 'confirmed'
 
@@ -42,7 +42,13 @@ export default function SubmissionModal({
     no_more_changes: false,
   })
 
-  const step = currentStatus === 'pending' ? 1 : currentStatus === 'pending_confirmation' ? 2 : 3
+  const defaultStep = currentStatus === 'pending' ? 1 : currentStatus === 'pending_confirmation' ? 2 : 3
+  const [stepOverride, setStepOverride] = useState<number | null>(null)
+  const step = stepOverride ?? defaultStep
+
+  useEffect(() => {
+    setStepOverride(null)
+  }, [isOpen, currentStatus])
 
   useEffect(() => {
     if (step === 3 && isOpen) {
@@ -98,6 +104,7 @@ export default function SubmissionModal({
         file_url: uploadedFile?.file_url,
       })
       onStatusChange('pending_confirmation')
+      setStepOverride(2)
     } catch (err: any) {
       const msg = err.response?.data?.error ?? 'Failed to confirm upload. Please try again.'
       setError(msg)
@@ -246,9 +253,25 @@ export default function SubmissionModal({
                 ].map((s, i) => {
                   const done = step > s.num
                   const active = step === s.num
+                  const clickable = s.num < step && step < 3
                   return (
                     <div key={s.num} style={{ display: 'flex', alignItems: 'center', flex: i < 2 ? 1 : 'none' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+                      <div
+                        onClick={() => {
+                          if (clickable) {
+                            setError(null)
+                            setStepOverride(s.num)
+                          }
+                        }}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '0.25rem',
+                          cursor: clickable ? 'pointer' : 'default',
+                        }}
+                        title={clickable ? `Click to go back to ${s.label}` : undefined}
+                      >
                         <div
                           style={{
                             width: '1.75rem',
@@ -262,12 +285,13 @@ export default function SubmissionModal({
                             backgroundColor: done ? '#22c55e' : active ? 'var(--color-primary)' : 'var(--color-surface-container-high)',
                             color: done || active ? 'white' : 'var(--color-on-surface-variant)',
                             transition: 'all 0.3s',
+                            boxShadow: clickable ? '0 0 0 2px rgba(34, 197, 94, 0.2)' : 'none',
                           }}
                         >
                           {done ? <Check size={12} /> : s.num}
                         </div>
-                        <span style={{ fontSize: '0.65rem', color: active ? 'var(--color-primary)' : 'var(--color-on-surface-variant)', fontWeight: active ? 600 : 400, whiteSpace: 'nowrap' }}>
-                          {s.label}
+                        <span style={{ fontSize: '0.65rem', color: active ? 'var(--color-primary)' : clickable ? '#16a34a' : 'var(--color-on-surface-variant)', fontWeight: active || clickable ? 600 : 400, whiteSpace: 'nowrap' }}>
+                          {s.label} {clickable ? '↩' : ''}
                         </span>
                       </div>
                       {i < 2 && (
@@ -579,6 +603,35 @@ export default function SubmissionModal({
                         : !isLeader
                         ? `Waiting for ${leaderName} to Confirm`
                         : 'Confirm & Submit Deliverable'}
+                    </button>
+
+                    <button
+                      type="button"
+                      id="btn-back-to-step1"
+                      onClick={() => {
+                        setError(null)
+                        setStepOverride(1)
+                      }}
+                      disabled={loading}
+                      style={{
+                        width: '100%',
+                        padding: '0.625rem',
+                        borderRadius: '0.625rem',
+                        border: '1px solid var(--color-outline-variant)',
+                        backgroundColor: 'var(--color-surface-container)',
+                        color: 'var(--color-on-surface)',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.375rem',
+                        marginTop: '0.75rem',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      <ArrowLeft size={16} /> Back to Step 1 (Replace File / Edit)
                     </button>
                   </motion.div>
                 )}

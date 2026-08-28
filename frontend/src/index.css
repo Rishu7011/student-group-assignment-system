@@ -171,3 +171,20 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #b5b5b0;
 }
+
+/* ── Hardware-Accelerated Smooth Spinners ── */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin, [style*="spin"] {
+  animation: spin 0.75s linear infinite !important;
+  transform-origin: center center;
+  will-change: transform;
+  display: inline-block;
+}
