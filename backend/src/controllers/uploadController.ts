@@ -3,15 +3,26 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 
-// Ensure uploads folder exists
-const uploadDir = path.join(process.cwd(), 'uploads');
+// ── Storage strategy ─────────────────────────────────────────────────────────
+// On Vercel (serverless), the filesystem is read-only except for /tmp.
+// Use /tmp/uploads when running on Vercel, ./uploads locally.
+const isVercel = !!process.env.VERCEL;
+const uploadDir = isVercel
+  ? '/tmp/uploads'
+  : path.join(process.cwd(), 'uploads');
+
+// Ensure folder exists (safe on both local and Vercel /tmp)
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Configure multer storage
+// Configure multer disk storage
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
+    // Re-create /tmp/uploads lazily in case it was wiped between invocations
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
     cb(null, uploadDir);
   },
   filename: (_req, file, cb) => {
@@ -45,7 +56,7 @@ const fileFilter = (
 
 export const upload = multer({
   storage,
-  limits: { fileSize: 15 * 1024 * 1024 }, // 15MB limit
+  limits: { fileSize: 15 * 1024 * 1024 }, // 15 MB
   fileFilter,
 });
 
@@ -55,6 +66,7 @@ export function handleFileUpload(req: Request, res: Response): void {
     return;
   }
 
+  // On Vercel, /tmp is ephemeral — return relative path same as locally
   const fileUrl = `/uploads/${req.file.filename}`;
   res.status(200).json({
     message: 'File uploaded successfully',
