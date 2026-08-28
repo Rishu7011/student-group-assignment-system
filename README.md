@@ -1,7 +1,7 @@
 <div align="center">
 
 # 🎓 GroupSync
-### *Next-Generation Academic Student Group & Assignment Management System*
+### *Next-Generation Academic Student, Group & Assignment Management System*
 
 [![Bun](https://img.shields.io/badge/Runtime-Bun%20v1.2+-fbf0df?style=for-the-badge&logo=bun&logoColor=black)](https://bun.sh)
 [![React 19](https://img.shields.io/badge/Frontend-React%2019%20%2B%20Vite-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
@@ -10,13 +10,13 @@
 [![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL%2016-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org)
 [![Tailwind CSS](https://img.shields.io/badge/Styling-Tailwind%20v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
 [![Docker](https://img.shields.io/badge/Container-Docker%20Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com)
-[![Framer Motion](https://img.shields.io/badge/Animations-Framer%20Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white)](https://www.framer.com/motion)
+[![Live Demo](https://img.shields.io/badge/Deployment-Live%20on%20Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://student-group-assignment-system.vercel.app)
 
 <p align="center">
-  <b>Seamless Collaboration</b> • <b>Two-Step Verified Submissions</b> • <b>Real-Time Analytics Matrix</b> • <b>Cloud Storage Sync</b>
+  <b>Course-Centric Hierarchy</b> • <b>Group Leader Acknowledgment</b> • <b>Reversible Submissions</b> • <b>Per-Course Analytics</b> • <b>In-App & Cloud Sync</b>
 </p>
 
-[✨ Live Features](#-feature-highlights) • [🏛 Architecture](#-system-architecture) • [🗄 Database Schema](#-entity-relationship-er-diagram) • [🚀 Quick Start](#-quick-start-guide) • [📡 API Reference](#-rest-api-reference)
+[🌐 Live Deployment](https://student-group-assignment-system.vercel.app) • [✨ Round 2 Features](#-round-2-enhancements) • [🏛 Architecture](#-system-architecture) • [🗄 Database Schema](#-entity-relationship-er-diagram) • [🚀 Quick Start](#-quick-start-guide) • [📡 API Reference](#-rest-api-reference)
 
 ---
 
@@ -24,43 +24,74 @@
 
 ## 🌟 Overview
 
-**GroupSync** is a modern, enterprise-ready academic management platform engineered to eliminate group project chaos in universities and educational programs. 
+**GroupSync** is a modern, full-stack academic platform engineered to eliminate group project chaos in universities and educational institutions.
 
-It empowers students to assemble project teams, invite peers, and execute verified two-step submissions linked to cloud storage repositories (e.g., OneDrive, Google Drive). Simultaneously, it arms professors and administrators with deep real-time analytics, automated assignment distribution (broadcast or targeted), and a live group×assignment progress matrix.
+It allows students to organize into collaborative teams, enroll in courses, upload project deliverables, and execute role-verified two-step submissions. Professors and administrators gain deep per-course analytics, automated assignment distribution, and grading/review workflows with live feedback loops.
 
 ---
 
-## ✨ Feature Highlights
+## 🚀 Round 2 Enhancements
+
+Building on the Round 1 base foundation, this version introduces major architectural, database, and functional upgrades:
+
+1. **Course-Centric Navigation & Organization**:
+   - Courses are now the primary navigational unit across the platform.
+   - Student dashboard displays active course cards with dynamic assignment countdown badges.
+   - Additive database schema migration (`courses`, `course_enrollments`, `assignments.course_id`).
+
+2. **Group Leader Acknowledgment & Authorization**:
+   - Distinct `leader_id` assigned to groups.
+   - **Two-Step Submission Flow**: Any team member can upload deliverables in Step 1, but only the **designated Group Leader** can execute the final Step 2 confirmation.
+   - Non-leader members see an explicit **"Waiting for Group Leader to Confirm"** status banner.
+
+3. **Reversible Submissions & Revision Workflow**:
+   - Group leaders can **retract and unsubmit** deliverables anytime before professor grading, resetting the assignment to draft status for easy revisions.
+   - Multi-step modal navigation allows jumping back to Step 1 to replace attached files seamlessly.
+   - Professor review status loop (`pending`, `accepted`, `rejected`) with feedback notes and resubmission triggers.
+
+4. **Professor Course Analytics Matrix**:
+   - Real-time aggregation of student enrollments, group distribution, submission statuses, and completion rates per course.
+   - Optimized PostgreSQL SQL aggregate queries for instantaneous reporting.
+
+5. **UI/UX & Branding Overhaul**:
+   - Inline form validation with clear real-time error states.
+   - Hardware-accelerated GPU spinners and micro-interactions.
+   - Custom **GroupSync** graduation emblem favicon and updated tab branding.
+   - In-app file upload support alongside cloud repository links.
+
+---
+
+## ✨ Feature Breakdown
 
 <table>
   <tr>
     <td width="50%" valign="top">
       <h3>🧑‍🎓 Student Portal</h3>
       <ul>
-        <li>🚀 <b>Interactive Hub</b>: Live metric counters for enrolled teams, active assignments, completed deliverables, and overdue alerts.</li>
-        <li>👥 <b>Team Management</b>: One-click group creation, real-time member invitations by email, role assignments, and roster inspection.</li>
-        <li>📤 <b>Two-Step Verified Submissions</b>:
+        <li>📚 <b>Course Catalog & Enrolled Grid</b>: Browse available courses, self-enroll with 1-click, and filter assignments by course.</li>
+        <li>👥 <b>Team Management & Roster</b>: Create groups, designate leaders, invite classmates by email, and inspect member roles.</li>
+        <li>📤 <b>Role-Verified Two-Step Submissions</b>:
           <ul>
-            <li><b>Step 1</b>: Direct OneDrive repository access & upload verification checkbox.</li>
-            <li><b>Step 2</b>: Final group confirmation lock with celebration confetti.</li>
+            <li><b>Step 1 (Any Member)</b>: Attach files (PDF, DOCX, images) or cloud links & confirm upload.</li>
+            <li><b>Step 2 (Leader Only)</b>: Review team checklist and execute final confirmation with celebration confetti.</li>
+            <li><b>Retract / Unsubmit</b>: Leaders can retract submissions anytime prior to grading for last-minute revisions.</li>
           </ul>
         </li>
-        <li>⚡ <b>Fluid Motion & Navigation</b>: Mobile drawer navigation, staggered card entrances, and zero-rerender <code>useRef</code> form state architecture.</li>
+        <li>⚡ <b>Feedback & Revisions</b>: View instructor grade status (Accepted/Rejected) and read contextual feedback.</li>
       </ul>
     </td>
     <td width="50%" valign="top">
-      <h3>🛡️ Administrator Suite</h3>
+      <h3>🛡️ Professor & Admin Suite</h3>
       <ul>
-        <li>📊 <b>Executive Dashboard</b>: Global completion rates, total enrolled students, active groups, and per-assignment progress bars.</li>
-        <li>📝 <b>Assignment Lifecycle Management</b>:
+        <li>📊 <b>Per-Course Analytics Dashboard</b>: Real-time student count, active groups, completion rates, and submission breakdowns.</li>
+        <li>📖 <b>Course & Curriculum Management</b>: Create academic courses, manage student enrollments, and assign course materials.</li>
+        <li>📝 <b>Assignment Lifecycle</b>:
           <ul>
-            <li>Create, edit, and delete assignments with transactional cascading.</li>
-            <li>Flexible targeting: <b>Broadcast to All</b> or <b>Target Specific Groups</b>.</li>
-            <li>Cloud storage link attachment and deadline scheduling.</li>
+            <li>Create course-bound assignments (Broadcast to all or targeted to select teams).</li>
+            <li>Schedule deadlines and attach OneDrive/Drive resource URLs.</li>
           </ul>
         </li>
-        <li>🔍 <b>Live Submission Matrix</b>: Group-by-group submission tracker with status pills, confirmation timestamps, and student audit tags.</li>
-        <li>📂 <b>Institutional Group Directory</b>: Deep-dive inspection of all student teams and group rosters.</li>
+        <li>🔍 <b>Submission Tracker & Grading</b>: Review submitted files, mark submissions as <b>Accepted</b> or <b>Rejected</b>, and leave revision feedback.</li>
       </ul>
     </td>
   </tr>
@@ -73,33 +104,36 @@ It empowers students to assemble project teams, invite peers, and execute verifi
 ```mermaid
 graph TB
     subgraph ClientLayer [" 💻 Presentation Layer "]
-        Client["Client Browser (Desktop / Tablet / Mobile)"]
-        FramerMotion["Framer Motion + Confetti Animations"]
-        UseRefState["useRef Form Architecture (Zero Keystroke Re-renders)"]
+        Client["Browser Client (React 19 + TypeScript)"]
+        FramerMotion["Framer Motion Transitions + Confetti"]
+        TailwindCSS["Tailwind CSS v4 + Design Tokens"]
     end
 
-    subgraph ProxyLayer [" ⚡ Edge / Web Server "]
-        Nginx["Nginx Reverse Proxy (Port 80 / 5173)\n• SPA Routing Fallback\n• Gzip Compression\n• Static Asset Caching"]
+    subgraph EdgeLayer [" ⚡ Deployment / Proxy Layer "]
+        Vercel["Vercel SPA Hosting (Frontend)"]
+        Nginx["Nginx Reverse Proxy (Docker Local)"]
     end
 
-    subgraph AppLayer [" ⚙️ Application Layer (Bun Runtime) "]
-        Backend["Express 4 REST API (Port 5001)"]
-        AuthMid["JWT Auth Middleware & RBAC"]
-        BCrypt["BCrypt Hashing (10 Salt Rounds)"]
+    subgraph AppLayer [" ⚙️ Backend Layer (Node.js / Bun Runtime) "]
+        Express["Express 4 REST API (Port 5001)"]
+        AuthMid["JWT Auth Middleware & RBAC (Student / Admin)"]
+        Multer["Multer File Upload Engine"]
+        LeaderAuth["Group Leader Verification Controller"]
     end
 
-    subgraph DataLayer [" 🗄 Data Layer "]
-        Postgres[("PostgreSQL 16 Engine\n(Port 5432)")]
-        Pool["pg Connection Pool"]
+    subgraph DataLayer [" 🗄 Database Layer "]
+        Postgres[("PostgreSQL 16 Engine\n(Local / Neon / Supabase)")]
+        Pool["pg Connection Pool with Additive Migrations"]
     end
 
+    Client --> Vercel
     Client --> Nginx
-    Nginx -->|Static HTML / CSS / JS| Client
-    Nginx -->|/api/* Reverse Proxy| Backend
-    Backend --> AuthMid
-    AuthMid --> Backend
-    Backend --> BCrypt
-    Backend --> Pool
+    Vercel -->|/api/* Requests| Express
+    Nginx -->|/api/* Proxy| Express
+    Express --> AuthMid
+    AuthMid --> LeaderAuth
+    Express --> Multer
+    LeaderAuth --> Pool
     Pool --> Postgres
 ```
 
@@ -110,12 +144,19 @@ graph TB
 ```mermaid
 erDiagram
     USERS ||--o{ GROUP_MEMBERS : "joins"
-    USERS ||--o{ GROUPS : "creates"
+    USERS ||--o{ GROUPS : "leads (leader_id) / creates"
+    USERS ||--o{ COURSES : "teaches (professor_id)"
+    USERS ||--o{ COURSE_ENROLLMENTS : "enrolls"
     USERS ||--o{ ASSIGNMENTS : "creates (admin)"
-    USERS ||--o{ SUBMISSIONS : "confirms"
+    USERS ||--o{ SUBMISSIONS : "confirms / reviews"
+
+    COURSES ||--o{ COURSE_ENROLLMENTS : "has students"
+    COURSES ||--o{ ASSIGNMENTS : "contains"
+
     GROUPS ||--o{ GROUP_MEMBERS : "contains"
     GROUPS ||--o{ ASSIGNMENT_GROUPS : "assigned to"
     GROUPS ||--o{ SUBMISSIONS : "submits"
+
     ASSIGNMENTS ||--o{ ASSIGNMENT_GROUPS : "targets"
     ASSIGNMENTS ||--o{ SUBMISSIONS : "receives"
 
@@ -128,26 +169,43 @@ erDiagram
         timestamp created_at "Created Timestamp"
     }
 
+    COURSES {
+        serial id PK "Primary Key"
+        varchar title "Course Title"
+        text description "Course Details"
+        integer professor_id FK "Users Ref"
+        timestamp created_at "Created Timestamp"
+    }
+
+    COURSE_ENROLLMENTS {
+        serial id PK "Primary Key"
+        integer course_id FK "Courses Ref"
+        integer student_id FK "Users Ref"
+        timestamp enrolled_at "Enrollment Timestamp"
+    }
+
     GROUPS {
         serial id PK "Primary Key"
         varchar name "Team Name"
+        integer leader_id FK "Group Leader User ID"
         integer created_by FK "Creator User ID"
         timestamp created_at "Created Timestamp"
     }
 
     GROUP_MEMBERS {
         serial id PK "Primary Key"
-        integer group_id FK "Group Reference"
-        integer user_id FK "User Reference"
+        integer group_id FK "Group Ref"
+        integer user_id FK "User Ref"
         timestamp joined_at "Joined Timestamp"
     }
 
     ASSIGNMENTS {
         serial id PK "Primary Key"
+        integer course_id FK "Courses Ref (Nullable)"
         varchar title "Assignment Title"
-        text description "Markdown / Details"
+        text description "Details / Requirements"
         timestamp due_date "Deadline"
-        varchar onedrive_link "Cloud Folder URL"
+        varchar onedrive_link "Resource URL"
         varchar assigned_to_type "all | group"
         integer created_by FK "Admin User ID"
         timestamp created_at "Created Timestamp"
@@ -155,20 +213,22 @@ erDiagram
 
     ASSIGNMENT_GROUPS {
         serial id PK "Primary Key"
-        integer assignment_id FK "Assignment Reference"
-        integer group_id FK "Group Reference"
+        integer assignment_id FK "Assignment Ref"
+        integer group_id FK "Group Ref"
     }
 
     SUBMISSIONS {
         serial id PK "Primary Key"
-        integer assignment_id FK "Assignment Reference"
-        integer group_id FK "Group Reference"
-        boolean onedrive_uploaded "Step 1 Flag"
-        boolean final_confirmed "Step 2 Flag"
-        integer confirmed_by FK "Student User ID"
-        timestamp confirmed_at "Lock Timestamp"
-        timestamp created_at "Created Timestamp"
-        timestamp updated_at "Updated Timestamp"
+        integer assignment_id FK "Assignment Ref"
+        integer group_id FK "Group Ref"
+        varchar status "pending | pending_confirmation | confirmed"
+        text file_url "Uploaded File URL / Path"
+        varchar review_status "pending | accepted | rejected"
+        text review_feedback "Professor Notes"
+        integer confirmed_by FK "Leader User ID"
+        timestamp confirmed_at "Confirmation Timestamp"
+        integer reviewed_by FK "Professor User ID"
+        timestamp reviewed_at "Review Timestamp"
     }
 ```
 
@@ -178,25 +238,23 @@ erDiagram
 
 | Domain | Technology | Description |
 |---|---|---|
-| **Runtime & Toolchain** | ![Bun](https://img.shields.io/badge/Bun-1.2+-black?logo=bun) | Ultra-fast JavaScript & TypeScript runtime and package manager |
-| **Frontend Framework** | ![React](https://img.shields.io/badge/React-19.0-61DAFB?logo=react) | Component-driven declarative UI |
-| **Language** | ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript) | End-to-end type safety across backend and frontend |
-| **Styling & Theme** | ![Tailwind](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwindcss) | Utility-first CSS engine with Material Design design tokens |
-| **Motion & Micro-interactions** | ![Framer](https://img.shields.io/badge/Framer_Motion-13.1-0055FF?logo=framer) | Physics-based animations, layout transitions & `AnimatePresence` |
-| **Icons & Visuals** | ![Lucide](https://img.shields.io/badge/Lucide_React-1.33-FF7F50) | Consistent, modern stroke-based UI iconography |
-| **Backend API** | ![Express](https://img.shields.io/badge/Express-4.22-black?logo=express) | Lightweight, performant Node/Bun HTTP server |
-| **Database** | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16_Alpine-4169E1?logo=postgresql) | Enterprise relational database with connection pooling |
-| **Security & Auth** | ![JWT](https://img.shields.io/badge/JWT-Tokens-black?logo=jsonwebtokens) | Cryptographic bearer auth, BCrypt password hashing |
-| **Reverse Proxy** | ![Nginx](https://img.shields.io/badge/Nginx-Alpine-009639?logo=nginx) | High-performance SPA routing, Gzip compression & API proxy |
-| **DevOps & Containers** | ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker) | Multi-stage Alpine container orchestration |
+| **Runtime & Toolchain** | ![Bun](https://img.shields.io/badge/Bun-1.2+-black?logo=bun) / Node.js | Fast JavaScript/TypeScript execution runtime |
+| **Frontend Framework** | ![React](https://img.shields.io/badge/React-19.0-61DAFB?logo=react) + Vite | Declarative, component-driven SPA interface |
+| **Language** | ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript) | Full-stack strict type safety |
+| **Styling & Design** | ![Tailwind](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwindcss) | Utility CSS with custom academic design tokens |
+| **Animations** | ![Framer](https://img.shields.io/badge/Framer_Motion-13.1-0055FF?logo=framer) + GSAP | Smooth layout transitions, toasts, and confetti effects |
+| **Backend API** | ![Express](https://img.shields.io/badge/Express-4.22-black?logo=express) | RESTful API server with route modularization |
+| **Database** | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql) | Relational database with indexes & aggregate queries |
+| **Security & Auth** | ![JWT](https://img.shields.io/badge/JWT-Bearer_Auth-black?logo=jsonwebtokens) | Role-based token authentication & BCrypt password hashing |
+| **Containerization** | ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker) | Multi-container setup for local development |
 
 ---
 
 ## 🚀 Quick Start Guide
 
-### 📦 Option 1: One-Command Docker Setup (Recommended)
+### 📦 Option 1: Docker Compose (Single Command)
 
-Run the entire platform (Postgres, Backend, Frontend) with a single command:
+Run the entire platform locally with zero prerequisites other than Docker:
 
 ```bash
 # 1. Clone the repository
@@ -207,28 +265,32 @@ cd student-group-assignment-system
 docker-compose up --build -d
 ```
 
-🎉 **Access the Running Stack:**
-- 🌐 **Web Application**: [http://localhost:5173](http://localhost:5173) (or [http://localhost](http://localhost))
-- 🔌 **Backend Health Endpoint**: [http://localhost:5001/api/health](http://localhost:5001/api/health)
-- 🗄 **PostgreSQL Database**: `localhost:5432` (`sgas_db` / `sgas_user` / `sgas_pass`)
-
-To stop all services:
-```bash
-docker-compose down
-```
+🎉 **Access Points:**
+- 🌐 **Web App**: [http://localhost:5173](http://localhost:5173) (or [http://localhost](http://localhost))
+- 🔌 **API Health Check**: [http://localhost:5001/api/health](http://localhost:5001/api/health)
+- 🗄 **PostgreSQL**: `localhost:5432` (`sgas_db` / `sgas_user` / `sgas_pass`)
 
 ---
 
-### 💻 Option 2: Local Development with Bun
+### 💻 Option 2: Local Development Setup
 
-#### 1. Database Initialization
-Ensure PostgreSQL is active, then execute the schema migration:
+#### 1. Database Setup
+Ensure PostgreSQL is running, then apply migrations:
 ```bash
 psql -U postgres -c "CREATE DATABASE sgas_db;"
 psql -U postgres -d sgas_db -f backend/migrations/001_init.sql
+psql -U postgres -d sgas_db -f backend/migrations/002_round2.sql
 ```
 
-#### 2. Backend Server
+#### 2. Seed Realistic Demo Data (Recommended)
+Populate the database with 12 demo students, 3 courses, 4 active groups with designated leaders, assignments, and sample submissions:
+```bash
+cd backend
+bun run seed:demo
+# or with npm: npx ts-node src/scripts/seedDemo.ts
+```
+
+#### 3. Start Backend
 ```bash
 cd backend
 bun install
@@ -236,82 +298,84 @@ bun run dev
 ```
 *Backend runs on `http://localhost:5001` with automated admin seeding.*
 
-#### 3. Frontend Application
+#### 4. Start Frontend
 ```bash
 cd ../frontend
 bun install
 bun run dev
 ```
-*Frontend runs on `http://localhost:5173` with Vite HMR.*
+*Frontend runs on `http://localhost:5173` with instant Vite HMR.*
 
 ---
 
-## 🔐 Default System Credentials
+## 🔐 Default Demo Accounts
 
-The backend automatically bootstraps an administrative user upon first boot:
+All demo accounts created by `seed:demo` share the unified password: **`Demo@1234`**
 
-| Role | Email | Password | Access Level |
-|---|---|---|---|
-| 👑 **System Administrator** | `sysadmin@groupsync.internal` | `Adm!n@GrpSync#2024` | Full platform management & analytics |
-| 🧑‍🎓 **Student** | *Self-register at `/register`* | *Custom* | Group creation & assignment submission |
+| Role | Name | Email | Password | Scope / Group |
+|---|---|---|---|---|
+| 👑 **System Admin** | System Administrator | `sysadmin@groupsync.internal` | `Adm!n@GrpSync#2024` | Global platform administration & analytics |
+| 🧑‍🏫 **Professor** | Prof. Alan Turing | `prof.turing@university.edu` | `Demo@1234` | CS301, CS402, CS204 Course Management |
+| 👑 **Student (Leader)** | Alex Rivera | `alex.rivera@university.edu` | `Demo@1234` | Leader of **Group Alpha** (CS301 & CS402) |
+| 🧑‍🎓 **Student (Member)** | Sam Taylor | `sam.taylor@university.edu` | `Demo@1234` | Member of **Group Alpha** |
+| 👑 **Student (Leader)** | Maya Lin | `maya.lin@university.edu` | `Demo@1234` | Leader of **Group Beta** |
+| 🧑‍🎓 **Student (Solo)** | Liam Vance | `liam.vance@university.edu` | `Demo@1234` | Unassigned / Independent Student |
 
 ---
 
 ## 📡 REST API Reference
 
 ### 🔑 Authentication (`/api/auth`)
-| Method | Endpoint | Description | Auth Level |
+| Method | Endpoint | Description | Access Level |
 |---|---|---|---|
 | `POST` | `/api/auth/register` | Register new student profile | Public |
-| `POST` | `/api/auth/login` | Authenticate and obtain JWT token | Public |
-| `GET` | `/api/auth/me` | Fetch authenticated session profile | Bearer JWT |
+| `POST` | `/api/auth/login` | Authenticate and obtain Bearer JWT | Public |
+| `GET` | `/api/auth/me` | Fetch authenticated user session profile | Bearer JWT |
+
+### 📚 Course Operations (`/api/courses`)
+| Method | Endpoint | Description | Access Level |
+|---|---|---|---|
+| `GET` | `/api/courses/mine` | List courses the user is enrolled in (or teaches) | Authenticated |
+| `GET` | `/api/courses/all` | List all available academic courses | Authenticated |
+| `GET` | `/api/courses/:id` | Get course details, assignments & enrolled students | Authenticated |
+| `POST` | `/api/courses` | Create a new course | Admin / Professor |
+| `POST` | `/api/courses/:id/enroll` | Self-enroll into a course | Student |
+| `GET` | `/api/courses/:id/analytics` | Real-time completion rates & submission breakdowns | Admin / Professor |
 
 ### 👥 Group Operations (`/api/groups`)
-| Method | Endpoint | Description | Auth Level |
+| Method | Endpoint | Description | Access Level |
 |---|---|---|---|
-| `GET` | `/api/groups/mine` | List all groups the student belongs to | Student |
-| `GET` | `/api/groups/all` | List all system groups with member counts | Admin |
-| `GET` | `/api/groups/:id` | Fetch group roster & metadata | Authenticated |
-| `POST` | `/api/groups` | Create a new student team | Student |
-| `POST` | `/api/groups/:id/members` | Invite student by email | Team Member |
-| `DELETE` | `/api/groups/:groupId/members/:userId` | Remove member from group | Team Creator |
-| `DELETE` | `/api/groups/:id` | Delete entire student group | Team Creator |
+| `GET` | `/api/groups/mine` | List user's active groups with leader indicators | Student |
+| `GET` | `/api/groups/all` | List all groups with roster counts | Admin |
+| `GET` | `/api/groups/:id` | Fetch group roster, leader metadata, and members | Authenticated |
+| `POST` | `/api/groups` | Create team (creator is set as default leader) | Student |
+| `POST` | `/api/groups/:id/members` | Invite teammate by email address | Team Member |
+| `DELETE` | `/api/groups/:groupId/members/:userId` | Remove member from group | Group Leader / Creator |
+| `DELETE` | `/api/groups/:id` | Delete entire student group | Group Leader / Creator |
 
 ### 📝 Assignment Management (`/api/assignments`)
-| Method | Endpoint | Description | Auth Level |
+| Method | Endpoint | Description | Access Level |
 |---|---|---|---|
-| `GET` | `/api/assignments` | List assignments (with student group filter) | Authenticated |
-| `GET` | `/api/assignments/:id` | Fetch assignment details & cloud links | Authenticated |
-| `POST` | `/api/assignments` | Create broadcast or targeted assignment | Admin |
+| `GET` | `/api/assignments` | List assignments (filtered by course / group) | Authenticated |
+| `GET` | `/api/assignments/:id` | Fetch assignment specs, cloud links & deadlines | Authenticated |
+| `POST` | `/api/assignments` | Create course assignment (Broadcast / Targeted) | Admin |
 | `PUT` | `/api/assignments/:id` | Update assignment metadata & group targeting | Admin |
-| `DELETE` | `/api/assignments/:id` | Delete assignment & cascade submissions | Admin |
+| `DELETE` | `/api/assignments/:id` | Delete assignment & cascade submission records | Admin |
 
 ### 📤 Submissions Flow (`/api/submissions`)
-| Method | Endpoint | Description | Auth Level |
+| Method | Endpoint | Description | Access Level |
 |---|---|---|---|
-| `GET` | `/api/submissions/my-groups` | Retrieve user group submission statuses | Student |
-| `GET` | `/api/submissions/assignment/:id` | Matrix view of all group submissions | Admin |
-| `POST` | `/api/submissions/step1` | Toggle OneDrive upload verification | Team Member |
-| `POST` | `/api/submissions/step2` | Final submission lock on behalf of group | Team Member |
+| `GET` | `/api/submissions/group/:id` | Retrieve assignment submission status for a group | Group Member / Admin |
+| `GET` | `/api/submissions/assignment/:id` | Matrix view of all group submissions for an assignment | Admin |
+| `POST` | `/api/submissions/:assignmentId/step1` | Step 1: Upload file / attach link & verify readiness | Team Member |
+| `POST` | `/api/submissions/:assignmentId/step2` | Step 2: Final submission confirmation | **Group Leader Only** |
+| `POST` | `/api/submissions/:assignmentId/unsubmit` | Retract submission to draft state for revision | **Group Leader Only** |
+| `PATCH` | `/api/submissions/:assignmentId/groups/:groupId/review` | Grade submission (`accepted`/`rejected`) & leave feedback | Admin / Professor |
 
-### 📊 Analytics & Diagnostics (`/api/analytics`, `/api/health`)
-| Method | Endpoint | Description | Auth Level |
+### 📁 File Uploads (`/api/upload`)
+| Method | Endpoint | Description | Access Level |
 |---|---|---|---|
-| `GET` | `/api/analytics/overview` | Platform-wide KPIs & progress stats | Admin |
-| `GET` | `/api/health` | Service health status check | Public |
-
----
-
-## 💡 Key Architectural Decisions
-
-1. **⚡ Zero-Rerender `useRef` Form Architecture**:
-   All input forms (`Login`, `Register`, `GroupManagement`, `ManageAssignments`) leverage React `useRef` references rather than synchronous keystroke state, preventing costly re-renders on complex interactive views.
-2. **🚀 Multi-Stage Alpine Containers**:
-   Docker images build in an isolated Bun stage and export static artifacts directly to an ultra-lightweight `nginx:alpine` runner, keeping production image footprints under **50MB**.
-3. **🔒 Atomic Transactional Operations**:
-   Complex multi-row updates (e.g. creating/deleting assignments with targeted group associations) use PostgreSQL transactions (`BEGIN ... COMMIT`) to prevent orphaned records.
-4. **🎨 Adaptive Responsive Drawer**:
-   Custom responsive navigation automatically detects viewport widths `< 768px` and switches from fixed desktop sidebar to an animated slide-out drawer with backdrop blur.
+| `POST` | `/api/upload` | Upload assignment deliverable (PDF, DOCX, PNG, etc.) | Authenticated |
 
 ---
 
@@ -320,31 +384,37 @@ The backend automatically bootstraps an administrative user upon first boot:
 ```text
 student-group-assignment-system/
 ├── backend/
-│   ├── Dockerfile                  # Multi-stage Bun Alpine production image
+│   ├── Dockerfile                  # Multi-stage Bun/Node container image
 │   ├── migrations/
-│   │   └── 001_init.sql            # PostgreSQL schema & constraints
+│   │   ├── 001_init.sql            # Base schema (users, groups, assignments)
+│   │   └── 002_round2.sql          # Round 2 migration (courses, enrollments, leader_id)
 │   ├── src/
-│   │   ├── config/db.ts            # pg connection pooling & auto-seed
-│   │   ├── controllers/            # Auth, Groups, Assignments, Submissions, Analytics
-│   │   ├── middleware/             # JWT auth & RBAC validation
-│   │   ├── routes/                 # Express route definitions
-│   │   └── server.ts               # Server entrypoint
+│   │   ├── config/db.ts            # pg connection pool & auto-migrations
+│   │   ├── controllers/            # Auth, Courses, Groups, Assignments, Submissions, Analytics
+│   │   ├── middleware/             # JWT verification & RBAC authorization
+│   │   ├── routes/                 # Modular Express route definitions
+│   │   ├── scripts/
+│   │   │   ├── seedAdmin.ts        # Bootstrap system administrator
+│   │   │   └── seedDemo.ts         # Comprehensive 12-student demo dataset
+│   │   └── server.ts               # Server bootstrap & upload static serving
 │   ├── package.json
 │   └── tsconfig.json
 ├── frontend/
-│   ├── Dockerfile                  # Multi-stage Bun -> Nginx runner
-│   ├── nginx.conf                  # Nginx proxy & SPA router
+│   ├── Dockerfile                  # Production Vite build -> Nginx runner
+│   ├── nginx.conf                  # Single Page Application router & proxy
+│   ├── public/
+│   │   └── favicon.svg             # Custom GroupSync academic graduation emblem
 │   ├── src/
-│   │   ├── api/client.ts           # Axios client with JWT interceptor
-│   │   ├── components/             # Sidebar, SubmissionModal, etc.
-│   │   ├── context/AuthContext.tsx # Global authentication provider
-│   │   ├── pages/                  # Student & Admin dashboards & workflows
-│   │   ├── index.css               # Material tokens & Tailwind imports
-│   │   └── App.tsx                 # Declarative routing & guards
+│   │   ├── api/client.ts           # Axios instance with JWT interceptors
+│   │   ├── components/             # Sidebar, Modals, Steppers, Protection Guards
+│   │   ├── context/AuthContext.tsx # User session & role state provider
+│   │   ├── pages/                  # CoursePage, StudentDashboard, AdminDashboard, Auth
+│   │   ├── index.css               # Material tokens, Tailwind v4 & smooth keyframes
+│   │   └── App.tsx                 # Declarative application routing
 │   ├── package.json
 │   └── vite.config.ts
-├── docker-compose.yml              # Single-command stack orchestrator
-└── README.md                       # Documentation & architecture guide
+├── docker-compose.yml              # Multi-container orchestration specification
+└── README.md                       # Comprehensive documentation & architecture guide
 ```
 
 ---
@@ -354,5 +424,5 @@ student-group-assignment-system/
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
 <div align="center">
-  <sub>Built with ❤️ using Bun, React 19, TypeScript, PostgreSQL, and Docker.</sub>
+  <sub>Built with ❤️ for academic collaboration using Bun, React 19, TypeScript, PostgreSQL, and Docker.</sub>
 </div>
