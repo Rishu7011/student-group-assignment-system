@@ -4,19 +4,19 @@
 ### *Next-Generation Academic Student, Group & Assignment Management System*
 
 [![Bun](https://img.shields.io/badge/Runtime-Bun%20v1.2+-fbf0df?style=for-the-badge&logo=bun&logoColor=black)](https://bun.sh)
-[![React 19](https://img.shields.io/badge/Frontend-React%2019%20%2B%20Vite-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/Language-TypeScript%205.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![React 19](https://img.shields.io/badge/Frontend-React%2019%20%2B%20Vite%208-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/Language-TypeScript%206-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Express](https://img.shields.io/badge/Backend-Express%204-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com)
-[![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL%2016-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org)
+[![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL%20%2B%20Supabase-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://supabase.com)
 [![Tailwind CSS](https://img.shields.io/badge/Styling-Tailwind%20v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
 [![Docker](https://img.shields.io/badge/Container-Docker%20Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com)
 [![Live Demo](https://img.shields.io/badge/Deployment-Live%20on%20Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://student-group-assignment-system.vercel.app)
 
 <p align="center">
-  <b>Course-Centric Hierarchy</b> • <b>Group Leader Acknowledgment</b> • <b>Reversible Submissions</b> • <b>Per-Course Analytics</b> • <b>In-App & Cloud Sync</b>
+  <b>Course-Centric Hierarchy</b> • <b>Group Leader Acknowledgment</b> • <b>Reversible Submissions</b> • <b>Per-Course Analytics</b> • <b>Cloud File Uploads</b>
 </p>
 
-[🌐 Live Deployment](https://student-group-assignment-system.vercel.app) • [✨ Round 2 Features](#-round-2-enhancements) • [🏛 Architecture](#-system-architecture) • [🗄 Database Schema](#-entity-relationship-er-diagram) • [🚀 Quick Start](#-quick-start-guide) • [📡 API Reference](#-rest-api-reference)
+[🌐 Live Demo](https://student-group-assignment-system.vercel.app) • [✨ Features](#-feature-breakdown) • [🏛 Architecture](#-system-architecture) • [🗄 Database Schema](#-entity-relationship-er-diagram) • [🚀 Quick Start](#-quick-start-guide) • [📡 API Reference](#-rest-api-reference)
 
 ---
 
@@ -26,9 +26,9 @@
 
 **GroupSync** is a modern, full-stack academic platform engineered to eliminate group project chaos in universities and educational institutions.
 
-It allows students to organize into collaborative teams, enroll in courses, upload project deliverables, and execute role-verified two-step submissions. Professors and administrators gain deep per-course analytics, automated assignment distribution, and grading/review workflows with live feedback loops.
+Students organize into collaborative teams, enroll in courses, upload project deliverables, and execute role-verified two-step submissions. Professors and administrators gain per-course analytics, automated assignment distribution, and grading/review workflows with live feedback loops.
 
-
+---
 
 ## ✨ Feature Breakdown
 
@@ -37,30 +37,30 @@ It allows students to organize into collaborative teams, enroll in courses, uplo
     <td width="50%" valign="top">
       <h3>🧑‍🎓 Student Portal</h3>
       <ul>
-        <li>📚 <b>Course Catalog & Enrolled Grid</b>: Browse available courses, self-enroll with 1-click, and filter assignments by course.</li>
-        <li>👥 <b>Team Management & Roster</b>: Create groups, designate leaders, invite classmates by email, and inspect member roles.</li>
+        <li>📚 <b>Course Catalog & Enrolled Grid</b>: Browse available courses, self-enroll with one click, and filter assignments by course.</li>
+        <li>👥 <b>Team Management & Roster</b>: Create groups, designate a leader, invite classmates by email, and inspect member roles.</li>
         <li>📤 <b>Role-Verified Two-Step Submissions</b>:
           <ul>
-            <li><b>Step 1 (Any Member)</b>: Attach files (PDF, DOCX, images) or cloud links & confirm upload.</li>
+            <li><b>Step 1 (Any Member)</b>: Attach files (PDF, DOCX, images, up to 15 MB) or cloud links and confirm upload.</li>
             <li><b>Step 2 (Leader Only)</b>: Review team checklist and execute final confirmation with celebration confetti.</li>
-            <li><b>Retract / Unsubmit</b>: Leaders can retract submissions anytime prior to grading for last-minute revisions.</li>
+            <li><b>Retract / Unsubmit</b>: Leaders can retract submissions before grading for last-minute revisions.</li>
           </ul>
         </li>
-        <li>⚡ <b>Feedback & Revisions</b>: View instructor grade status (Accepted/Rejected) and read contextual feedback.</li>
+        <li>⚡ <b>Feedback & Revisions</b>: View instructor grade status (Accepted / Rejected) and contextual feedback inline.</li>
       </ul>
     </td>
     <td width="50%" valign="top">
       <h3>🛡️ Professor & Admin Suite</h3>
       <ul>
         <li>📊 <b>Per-Course Analytics Dashboard</b>: Real-time student count, active groups, completion rates, and submission breakdowns.</li>
-        <li>📖 <b>Course & Curriculum Management</b>: Create academic courses, manage student enrollments, and assign course materials.</li>
+        <li>📖 <b>Course & Curriculum Management</b>: Create academic courses, enroll students manually or let them self-enroll.</li>
         <li>📝 <b>Assignment Lifecycle</b>:
           <ul>
-            <li>Create course-bound assignments (Broadcast to all or targeted to select teams).</li>
-            <li>Schedule deadlines and attach OneDrive/Drive resource URLs.</li>
+            <li>Create course-bound assignments (broadcast to all or targeted to select groups).</li>
+            <li>Schedule deadlines and attach OneDrive / Drive resource URLs.</li>
           </ul>
         </li>
-        <li>🔍 <b>Submission Tracker & Grading</b>: Review submitted files, mark submissions as <b>Accepted</b> or <b>Rejected</b>, and leave revision feedback.</li>
+        <li>🔍 <b>Submission Tracker & Grading</b>: Review submitted files, mark as <b>Accepted</b> or <b>Rejected</b>, and leave revision notes.</li>
       </ul>
     </td>
   </tr>
@@ -74,36 +74,39 @@ It allows students to organize into collaborative teams, enroll in courses, uplo
 graph TB
     subgraph ClientLayer [" 💻 Presentation Layer "]
         Client["Browser Client (React 19 + TypeScript)"]
-        FramerMotion["Framer Motion Transitions + Confetti"]
-        TailwindCSS["Tailwind CSS v4 + Design Tokens"]
+        FramerMotion["Framer Motion + GSAP Animations + Confetti"]
+        TailwindCSS["Tailwind CSS v4 + Radix UI Primitives"]
     end
 
     subgraph EdgeLayer [" ⚡ Deployment / Proxy Layer "]
         Vercel["Vercel SPA Hosting (Frontend)"]
         Nginx["Nginx Reverse Proxy (Docker Local)"]
+        Vite["Vite Dev Proxy to :5001 (Local Dev)"]
     end
 
-    subgraph AppLayer [" ⚙️ Backend Layer (Node.js / Bun Runtime) "]
+    subgraph AppLayer [" ⚙️ Backend Layer (Bun Runtime) "]
         Express["Express 4 REST API (Port 5001)"]
-        AuthMid["JWT Auth Middleware & RBAC (Student / Admin)"]
-        Multer["Multer File Upload Engine"]
-        LeaderAuth["Group Leader Verification Controller"]
+        AuthMid["JWT Auth Middleware · RBAC (Student / Admin)"]
+        Multer["Multer File Upload Engine (15 MB limit)"]
+        SeedAdmin["Startup: seedSystemAdmin (idempotent)"]
     end
 
     subgraph DataLayer [" 🗄 Database Layer "]
-        Postgres[("PostgreSQL 16 Engine\n(Local / Neon / Supabase)")]
-        Pool["pg Connection Pool with Additive Migrations"]
+        Supabase[("Supabase PostgreSQL — Connection Pooler Port 6543")]
+        Pool["pg Connection Pool · SSL Enabled"]
     end
 
     Client --> Vercel
+    Client --> Vite
     Client --> Nginx
     Vercel -->|/api/* Requests| Express
+    Vite -->|/api/* Proxy| Express
     Nginx -->|/api/* Proxy| Express
     Express --> AuthMid
-    AuthMid --> LeaderAuth
-    Express --> Multer
-    LeaderAuth --> Pool
-    Pool --> Postgres
+    AuthMid --> Multer
+    AuthMid --> Pool
+    SeedAdmin --> Pool
+    Pool --> Supabase
 ```
 
 ---
@@ -113,11 +116,11 @@ graph TB
 ```mermaid
 erDiagram
     USERS ||--o{ GROUP_MEMBERS : "joins"
-    USERS ||--o{ GROUPS : "leads (leader_id) / creates"
-    USERS ||--o{ COURSES : "teaches (professor_id)"
+    USERS ||--o{ GROUPS : "leads or creates"
+    USERS ||--o{ COURSES : "teaches"
     USERS ||--o{ COURSE_ENROLLMENTS : "enrolls"
-    USERS ||--o{ ASSIGNMENTS : "creates (admin)"
-    USERS ||--o{ SUBMISSIONS : "confirms / reviews"
+    USERS ||--o{ ASSIGNMENTS : "creates"
+    USERS ||--o{ SUBMISSIONS : "confirms or reviews"
 
     COURSES ||--o{ COURSE_ENROLLMENTS : "has students"
     COURSES ||--o{ ASSIGNMENTS : "contains"
@@ -130,74 +133,75 @@ erDiagram
     ASSIGNMENTS ||--o{ SUBMISSIONS : "receives"
 
     USERS {
-        serial id PK "Primary Key"
-        varchar name "Full Name"
-        varchar email UK "Unique Email"
-        varchar password_hash "Bcrypt Hash"
-        varchar role "student | admin"
-        timestamp created_at "Created Timestamp"
+        serial id PK
+        varchar name
+        varchar email UK
+        text password_hash
+        varchar role
+        timestamptz created_at
     }
 
     COURSES {
-        serial id PK "Primary Key"
-        varchar title "Course Title"
-        text description "Course Details"
-        integer professor_id FK "Users Ref"
-        timestamp created_at "Created Timestamp"
+        serial id PK
+        varchar title
+        text description
+        integer professor_id FK
+        timestamptz created_at
     }
 
     COURSE_ENROLLMENTS {
-        serial id PK "Primary Key"
-        integer course_id FK "Courses Ref"
-        integer student_id FK "Users Ref"
-        timestamp enrolled_at "Enrollment Timestamp"
+        serial id PK
+        integer course_id FK
+        integer student_id FK
+        timestamptz enrolled_at
     }
 
     GROUPS {
-        serial id PK "Primary Key"
-        varchar name "Team Name"
-        integer leader_id FK "Group Leader User ID"
-        integer created_by FK "Creator User ID"
-        timestamp created_at "Created Timestamp"
+        serial id PK
+        varchar name
+        integer leader_id FK
+        integer created_by FK
+        timestamptz created_at
     }
 
     GROUP_MEMBERS {
-        serial id PK "Primary Key"
-        integer group_id FK "Group Ref"
-        integer user_id FK "User Ref"
-        timestamp joined_at "Joined Timestamp"
+        serial id PK
+        integer group_id FK
+        integer user_id FK
+        timestamptz joined_at
     }
 
     ASSIGNMENTS {
-        serial id PK "Primary Key"
-        integer course_id FK "Courses Ref (Nullable)"
-        varchar title "Assignment Title"
-        text description "Details / Requirements"
-        timestamp due_date "Deadline"
-        varchar onedrive_link "Resource URL"
-        varchar assigned_to_type "all | group"
-        integer created_by FK "Admin User ID"
-        timestamp created_at "Created Timestamp"
+        serial id PK
+        integer course_id FK
+        varchar title
+        text description
+        date due_date
+        text onedrive_link
+        varchar assigned_to_type
+        integer created_by FK
+        timestamptz created_at
     }
 
     ASSIGNMENT_GROUPS {
-        serial id PK "Primary Key"
-        integer assignment_id FK "Assignment Ref"
-        integer group_id FK "Group Ref"
+        serial id PK
+        integer assignment_id FK
+        integer group_id FK
     }
 
     SUBMISSIONS {
-        serial id PK "Primary Key"
-        integer assignment_id FK "Assignment Ref"
-        integer group_id FK "Group Ref"
-        varchar status "pending | pending_confirmation | confirmed"
-        text file_url "Uploaded File URL / Path"
-        varchar review_status "pending | accepted | rejected"
-        text review_feedback "Professor Notes"
-        integer confirmed_by FK "Leader User ID"
-        timestamp confirmed_at "Confirmation Timestamp"
-        integer reviewed_by FK "Professor User ID"
-        timestamp reviewed_at "Review Timestamp"
+        serial id PK
+        integer assignment_id FK
+        integer group_id FK
+        varchar status
+        text file_url
+        varchar review_status
+        text review_feedback
+        integer confirmed_by FK
+        timestamptz confirmed_at
+        integer reviewed_by FK
+        timestamptz reviewed_at
+        timestamptz created_at
     }
 ```
 
@@ -205,193 +209,363 @@ erDiagram
 
 ## 🛠 Tech Stack & Tooling
 
-| Domain | Technology | Description |
+| Domain | Technology | Version |
 |---|---|---|
-| **Runtime & Toolchain** | ![Bun](https://img.shields.io/badge/Bun-1.2+-black?logo=bun) / Node.js | Fast JavaScript/TypeScript execution runtime |
-| **Frontend Framework** | ![React](https://img.shields.io/badge/React-19.0-61DAFB?logo=react) + Vite | Declarative, component-driven SPA interface |
-| **Language** | ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript) | Full-stack strict type safety |
-| **Styling & Design** | ![Tailwind](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwindcss) | Utility CSS with custom academic design tokens |
-| **Animations** | ![Framer](https://img.shields.io/badge/Framer_Motion-13.1-0055FF?logo=framer) + GSAP | Smooth layout transitions, toasts, and confetti effects |
-| **Backend API** | ![Express](https://img.shields.io/badge/Express-4.22-black?logo=express) | RESTful API server with route modularization |
-| **Database** | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql) | Relational database with indexes & aggregate queries |
-| **Security & Auth** | ![JWT](https://img.shields.io/badge/JWT-Bearer_Auth-black?logo=jsonwebtokens) | Role-based token authentication & BCrypt password hashing |
-| **Containerization** | ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker) | Multi-container setup for local development |
+| **Runtime** | [Bun](https://bun.sh) | 1.2+ |
+| **Frontend Framework** | [React](https://react.dev) + [Vite](https://vite.dev) | 19.x / 8.x |
+| **Language** | [TypeScript](https://www.typescriptlang.org) | 6.x (frontend) / 5.x (backend) |
+| **Styling** | [Tailwind CSS](https://tailwindcss.com) v4 | 4.x |
+| **Animations** | [Framer Motion](https://www.framer.com/motion) + [GSAP](https://gsap.com) | 13.x / 3.x |
+| **UI Primitives** | [Radix UI](https://www.radix-ui.com) (Dialog, Select) | 1.x / 2.x |
+| **Routing** | [React Router DOM](https://reactrouter.com) | 7.x |
+| **HTTP Client** | [Axios](https://axios-http.com) | 1.x |
+| **Icons** | [Lucide React](https://lucide.dev) | 1.x |
+| **Celebrations** | canvas-confetti | 1.x |
+| **Backend API** | [Express](https://expressjs.com) | 4.x |
+| **Database Client** | [node-postgres (pg)](https://node-postgres.com) | 8.12+ |
+| **Database Host** | [Supabase](https://supabase.com) PostgreSQL | 16 |
+| **Auth** | JWT (jsonwebtoken) + bcrypt | 9.x / 5.x |
+| **File Uploads** | [Multer](https://github.com/expressjs/multer) | 2.x — 15 MB limit |
+| **Containerization** | Docker + Docker Compose | — |
+| **Linting** | [oxlint](https://oxc.rs/docs/guide/usage/linter.html) | 1.x |
 
 ---
 
 ## 🚀 Quick Start Guide
 
-### 📦 Option 1: Docker Compose (Single Command)
+### Option 1: Docker Compose (Self-hosted DB)
 
-Run the entire platform locally with zero prerequisites other than Docker:
+Runs the entire stack locally with a containerized PostgreSQL instance:
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/Rishu7011/student-group-assignment-system.git
 cd student-group-assignment-system
-
-# 2. Build and launch all containers
 docker-compose up --build -d
 ```
 
-🎉 **Access Points:**
-- 🌐 **Web App**: [http://localhost:5173](http://localhost:5173) (or [http://localhost](http://localhost))
-- 🔌 **API Health Check**: [http://localhost:5001/api/health](http://localhost:5001/api/health)
-- 🗄 **PostgreSQL**: `localhost:5432` (`sgas_db` / `sgas_user` / `sgas_pass`)
+| Service | URL |
+|---|---|
+| 🌐 Web App | http://localhost:5173 (or http://localhost) |
+| 🔌 API Health | http://localhost:5001/api/health |
+| 🗄 PostgreSQL | `localhost:5432` — db `sgas_db` / user `sgas_user` / pass `sgas_pass` |
 
 ---
 
-### 💻 Option 2: Local Development Setup
+### Option 2: Local Dev with Supabase (Recommended)
 
-#### 1. Database Setup
-Ensure PostgreSQL is running, then apply migrations:
+> **Important:** Supabase's direct connection host (`db.*.supabase.co:5432`) is **IPv6-only** and unreachable from most local networks. You **must** use the **Connection Pooler** URL (port `6543`) for local development.
+
+#### 1. Get the Supabase Pooler Connection String
+
+1. Open your [Supabase project dashboard](https://supabase.com/dashboard/projects)
+2. Go to **Settings → Database → Connection string**
+3. Select the **"Transaction"** tab (PgBouncer pooler — port 6543, IPv4 ✅)
+4. Copy the URL:
+   ```
+   postgresql://postgres.PROJECT_REF:[PASSWORD]@aws-0-REGION.pooler.supabase.com:6543/postgres
+   ```
+
+#### 2. Apply Migrations
+
+Run both SQL files against your Supabase DB via the Supabase SQL Editor or `psql`:
+
 ```bash
-psql -U postgres -c "CREATE DATABASE sgas_db;"
-psql -U postgres -d sgas_db -f backend/migrations/001_init.sql
-psql -U postgres -d sgas_db -f backend/migrations/002_round2.sql
+psql "postgresql://postgres.PROJECT_REF:[PASSWORD]@aws-0-REGION.pooler.supabase.com:6543/postgres" \
+  -f backend/migrations/001_init.sql \
+  -f backend/migrations/002_round2.sql
 ```
 
-#### 2. Seed Realistic Demo Data (Recommended)
-Populate the database with 12 demo students, 3 courses, 4 active groups with designated leaders, assignments, and sample submissions:
+#### 3. Configure Environment
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+Edit `backend/.env`:
+
+```env
+# Use the Supabase Connection POOLER URL (port 6543), NOT the direct URL.
+# Special characters in passwords must be URL-encoded: @ -> %40  # -> %23  ! -> %21
+DATABASE_URL=postgresql://postgres.PROJECT_REF:YOUR_PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres
+
+JWT_SECRET=your_long_random_secret_here
+PORT=5001
+
+# System Admin — seeded automatically on every server startup (idempotent)
+SYSADMIN_NAME=System Administrator
+SYSADMIN_EMAIL=admin@yourdomain.com
+SYSADMIN_PASSWORD=YourSecureAdminPassword
+```
+
+#### 4. Seed Demo Data (Optional)
+
 ```bash
 cd backend
 bun run seed:demo
-# or with npm: npx ts-node src/scripts/seedDemo.ts
 ```
 
-#### 3. Start Backend
-```bash
-cd backend
-bun install
-bun run dev
-```
-*Backend runs on `http://localhost:5001` with automated admin seeding.*
+Populates: 12 demo students, 3 courses, 4 groups with leaders, assignments, and sample submissions.
 
-#### 4. Start Frontend
+#### 5. Start Backend
+
 ```bash
-cd ../frontend
-bun install
-bun run dev
+cd backend && bun install && bun run dev
+# Server: http://localhost:5001
 ```
-*Frontend runs on `http://localhost:5173` with instant Vite HMR.*
+
+On every startup the server automatically applies any missing schema columns and upserts the system admin from `SYSADMIN_*` env vars.
+
+#### 6. Start Frontend
+
+```bash
+cd frontend && bun install && bun run dev
+# App: http://localhost:5173
+```
+
+The Vite dev server proxies all `/api/*` and `/uploads/*` requests to `http://localhost:5001`.
 
 ---
 
-## 🔐 Default Demo Accounts
+## 🔐 Default Accounts
 
-All demo accounts created by `seed:demo` share the unified password: **`Demo@1234`**
+### System Admin (auto-seeded from `.env`)
 
-| Role | Name | Email | Password | Scope / Group |
-|---|---|---|---|---|
-| 👑 **System Admin** | System Administrator | `sysadmin@groupsync.internal` | `Adm!n@GrpSync#2024` | Global platform administration & analytics |
-| 🧑‍🏫 **Professor** | Prof. Alan Turing | `prof.turing@university.edu` | `Demo@1234` | CS301, CS402, CS204 Course Management |
-| 👑 **Student (Leader)** | Alex Rivera | `alex.rivera@university.edu` | `Demo@1234` | Leader of **Group Alpha** (CS301 & CS402) |
-| 🧑‍🎓 **Student (Member)** | Sam Taylor | `sam.taylor@university.edu` | `Demo@1234` | Member of **Group Alpha** |
-| 👑 **Student (Leader)** | Maya Lin | `maya.lin@university.edu` | `Demo@1234` | Leader of **Group Beta** |
-| 🧑‍🎓 **Student (Solo)** | Liam Vance | `liam.vance@university.edu` | `Demo@1234` | Unassigned / Independent Student |
+| Field | Value |
+|---|---|
+| Email | `SYSADMIN_EMAIL` value in `.env` |
+| Password | `SYSADMIN_PASSWORD` value in `.env` |
+| Fallback (if vars unset) | `sysadmin@groupsync.internal` / `Adm!n@GrpSync#2024` |
+
+### Demo Dataset (after `bun run seed:demo`)
+
+All demo student accounts use password: **`Demo@1234`**
+
+| Role / Status | Name | Email | Group |
+|---|---|---|---|
+| 👑 Student Leader | Alice Johnson | `alice@groupsync.com` | Nova Squad (Leader) |
+| 🧑‍🎓 Student Member | Bob Martinez | `bob@groupsync.com` | Nova Squad |
+| 🧑‍🎓 Student Member | Carol Danvers | `carol@groupsync.com` | Nova Squad |
+| 👑 Student Leader | David Miller | `david@groupsync.com` | ByteCoders (Leader) |
+| 🧑‍🎓 Student Member | Emma Watson | `emma@groupsync.com` | ByteCoders |
+| 🧑‍🎓 Student Member | Frank Castle | `frank@groupsync.com` | ByteCoders |
+| 👑 Student Leader | Grace Hopper | `grace@groupsync.com` | Quantum Crew (Leader) |
+| 🧑‍🎓 Student Member | Henry Cavill | `henry@groupsync.com` | Quantum Crew |
+| 🧑‍🎓 Student Member | Isabella Clark | `isabella@groupsync.com` | Quantum Crew |
+| 👑 Student Leader | Jack Ryan | `jack@groupsync.com` | CyberKnights (Leader) |
+| 🧑‍🎓 Student Member | Katherine Johnson | `katherine@groupsync.com` | CyberKnights |
+| 🧑‍🎓 Fresh Student | Leo Messi | `leo@groupsync.com` | *No group (solo / unassigned)* |
+
+> [!NOTE]
+> The admin account is synchronized automatically from `SYSADMIN_EMAIL` / `SYSADMIN_PASSWORD` (or `ADMIN_EMAIL` / `ADMIN_PASSWORD`) defined in your `backend/.env`. If unset, it defaults to `sysadmin@groupsync.internal` / `Adm!n@GrpSync#2024`.
 
 ---
 
 ## 📡 REST API Reference
 
-### 🔑 Authentication (`/api/auth`)
-| Method | Endpoint | Description | Access Level |
-|---|---|---|---|
-| `POST` | `/api/auth/register` | Register new student profile | Public |
-| `POST` | `/api/auth/login` | Authenticate and obtain Bearer JWT | Public |
-| `GET` | `/api/auth/me` | Fetch authenticated user session profile | Bearer JWT |
+All protected endpoints require: `Authorization: Bearer <token>`
 
-### 📚 Course Operations (`/api/courses`)
-| Method | Endpoint | Description | Access Level |
-|---|---|---|---|
-| `GET` | `/api/courses/mine` | List courses the user is enrolled in (or teaches) | Authenticated |
-| `GET` | `/api/courses/all` | List all available academic courses | Authenticated |
-| `GET` | `/api/courses/:id` | Get course details, assignments & enrolled students | Authenticated |
-| `POST` | `/api/courses` | Create a new course | Admin / Professor |
-| `POST` | `/api/courses/:id/enroll` | Self-enroll into a course | Student |
-| `GET` | `/api/courses/:id/analytics` | Real-time completion rates & submission breakdowns | Admin / Professor |
+### 🔑 Authentication — `/api/auth`
 
-### 👥 Group Operations (`/api/groups`)
-| Method | Endpoint | Description | Access Level |
+| Method | Endpoint | Description | Auth |
 |---|---|---|---|
-| `GET` | `/api/groups/mine` | List user's active groups with leader indicators | Student |
-| `GET` | `/api/groups/all` | List all groups with roster counts | Admin |
-| `GET` | `/api/groups/:id` | Fetch group roster, leader metadata, and members | Authenticated |
-| `POST` | `/api/groups` | Create team (creator is set as default leader) | Student |
-| `POST` | `/api/groups/:id/members` | Invite teammate by email address | Team Member |
-| `DELETE` | `/api/groups/:groupId/members/:userId` | Remove member from group | Group Leader / Creator |
-| `DELETE` | `/api/groups/:id` | Delete entire student group | Group Leader / Creator |
+| `POST` | `/api/auth/register` | Register new student (role locked to `student`) | Public |
+| `POST` | `/api/auth/login` | Authenticate and receive Bearer JWT | Public |
+| `GET` | `/api/auth/me` | Fetch current user session profile | JWT |
 
-### 📝 Assignment Management (`/api/assignments`)
-| Method | Endpoint | Description | Access Level |
-|---|---|---|---|
-| `GET` | `/api/assignments` | List assignments (filtered by course / group) | Authenticated |
-| `GET` | `/api/assignments/:id` | Fetch assignment specs, cloud links & deadlines | Authenticated |
-| `POST` | `/api/assignments` | Create course assignment (Broadcast / Targeted) | Admin |
-| `PUT` | `/api/assignments/:id` | Update assignment metadata & group targeting | Admin |
-| `DELETE` | `/api/assignments/:id` | Delete assignment & cascade submission records | Admin |
+### 📚 Courses — `/api/courses`
 
-### 📤 Submissions Flow (`/api/submissions`)
-| Method | Endpoint | Description | Access Level |
+| Method | Endpoint | Description | Auth |
 |---|---|---|---|
-| `GET` | `/api/submissions/group/:id` | Retrieve assignment submission status for a group | Group Member / Admin |
-| `GET` | `/api/submissions/assignment/:id` | Matrix view of all group submissions for an assignment | Admin |
-| `POST` | `/api/submissions/:assignmentId/step1` | Step 1: Upload file / attach link & verify readiness | Team Member |
-| `POST` | `/api/submissions/:assignmentId/step2` | Step 2: Final submission confirmation | **Group Leader Only** |
-| `POST` | `/api/submissions/:assignmentId/unsubmit` | Retract submission to draft state for revision | **Group Leader Only** |
-| `PATCH` | `/api/submissions/:assignmentId/groups/:groupId/review` | Grade submission (`accepted`/`rejected`) & leave feedback | Admin / Professor |
+| `GET` | `/api/courses/catalog` | All courses with enrollment status for current user | JWT |
+| `GET` | `/api/courses/mine` | Courses the user teaches (admin) or is enrolled in (student) | JWT |
+| `GET` | `/api/courses/:id` | Course detail, assignments, and enrolled students | JWT |
+| `GET` | `/api/courses/:id/analytics` | Completion rates, group counts, submission breakdown | Admin |
+| `POST` | `/api/courses` | Create a new course | Admin |
+| `POST` | `/api/courses/:id/enroll` | Admin manually enrolls a student | Admin |
+| `POST` | `/api/courses/:id/self-enroll` | Student self-enrolls | JWT |
 
-### 📁 File Uploads (`/api/upload`)
-| Method | Endpoint | Description | Access Level |
+### 👥 Groups — `/api/groups`
+
+| Method | Endpoint | Description | Auth |
 |---|---|---|---|
-| `POST` | `/api/upload` | Upload assignment deliverable (PDF, DOCX, PNG, etc.) | Authenticated |
+| `GET` | `/api/groups/mine` | Current user's groups with leader indicators | Student |
+| `GET` | `/api/groups/all` | All groups with member counts | Admin |
+| `GET` | `/api/groups/:id` | Group roster and leader metadata | JWT |
+| `POST` | `/api/groups` | Create team (creator becomes default leader) | Student |
+| `POST` | `/api/groups/:id/members` | Invite teammate by email | Student |
+| `DELETE` | `/api/groups/:id/members/:userId` | Remove member from group | Student |
+| `DELETE` | `/api/groups/:id` | Delete entire group | Student |
+
+### 📝 Assignments — `/api/assignments`
+
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| `GET` | `/api/assignments` | List assignments (role-filtered) | JWT |
+| `GET` | `/api/assignments/:id` | Assignment specs, deadlines, resource links | JWT |
+| `POST` | `/api/assignments` | Create assignment (broadcast or group-targeted) | Admin |
+| `PUT` | `/api/assignments/:id` | Update metadata and targeting | Admin |
+| `DELETE` | `/api/assignments/:id` | Delete and cascade submissions | Admin |
+
+### 📤 Submissions — `/api/submissions`
+
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| `GET` | `/api/submissions/group/:id` | Submission status for a group | JWT |
+| `GET` | `/api/submissions/assignment/:id` | All group submissions for an assignment | Admin |
+| `POST` | `/api/submissions/:assignmentId/step1` | Upload file or attach link (any member) | Student |
+| `POST` | `/api/submissions/:assignmentId/step2` | Final confirmation | **Leader only** |
+| `POST` | `/api/submissions/:assignmentId/unsubmit` | Retract to draft | **Leader only** |
+| `PATCH` | `/api/submissions/:assignmentId/groups/:groupId/review` | Grade and leave feedback | Admin |
+
+### 📁 File Upload — `/api/upload`
+
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| `POST` | `/api/upload` | Upload file (PDF, DOCX, PNG, JPG — max 15 MB) | JWT |
+
+Uploaded files are stored in `backend/uploads/` and served at `/uploads/<filename>`.
+
+### 📊 Analytics — `/api/analytics`
+
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| `GET` | `/api/analytics/overview` | Platform-wide stats (users, groups, submissions, courses) | Admin |
+
+### 🏥 Health
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/health` | Returns `{ status: "ok", timestamp }` — no auth required |
 
 ---
 
-## 📂 Project Directory Structure
+## 📂 Project Structure
 
 ```text
 student-group-assignment-system/
 ├── backend/
-│   ├── Dockerfile                  # Multi-stage Bun/Node container image
+│   ├── .env.example                # Environment variable template
+│   ├── Dockerfile                  # Multi-stage Bun container image
 │   ├── migrations/
-│   │   ├── 001_init.sql            # Base schema (users, groups, assignments)
-│   │   └── 002_round2.sql          # Round 2 migration (courses, enrollments, leader_id)
+│   │   ├── 001_init.sql            # Base schema: users, groups, assignments, submissions
+│   │   └── 002_round2.sql          # Additive: courses, enrollments, groups.leader_id
 │   ├── src/
-│   │   ├── config/db.ts            # pg connection pool & auto-migrations
-│   │   ├── controllers/            # Auth, Courses, Groups, Assignments, Submissions, Analytics
-│   │   ├── middleware/             # JWT verification & RBAC authorization
-│   │   ├── routes/                 # Modular Express route definitions
+│   │   ├── config/db.ts            # pg Pool — SSL + Supabase pooler compatible
+│   │   ├── controllers/
+│   │   │   ├── authController.ts        # register / login / me
+│   │   │   ├── courseController.ts      # CRUD + catalog + self-enroll
+│   │   │   ├── groupController.ts       # Create / manage / roster
+│   │   │   ├── assignmentController.ts  # CRUD + group targeting
+│   │   │   ├── submissionController.ts  # Two-step + unsubmit + review
+│   │   │   ├── analyticsController.ts   # Overview + per-course stats
+│   │   │   └── uploadController.ts      # Multer single-file handler
+│   │   ├── middleware/
+│   │   │   ├── auth.ts             # JWT Bearer verification → req.user
+│   │   │   └── roles.ts            # requireRole(...roles) RBAC guard
+│   │   ├── routes/                 # One file per resource domain
 │   │   ├── scripts/
-│   │   │   ├── seedAdmin.ts        # Bootstrap system administrator
-│   │   │   └── seedDemo.ts         # Comprehensive 12-student demo dataset
-│   │   └── server.ts               # Server bootstrap & upload static serving
+│   │   │   ├── seedAdmin.ts        # Auto-runs on startup: upsert system admin
+│   │   │   └── seedDemo.ts         # Manual: 12-student full demo dataset
+│   │   ├── types/express.d.ts      # Augments Express Request with req.user
+│   │   └── server.ts               # App bootstrap, routes, IPv4 DNS fix
 │   ├── package.json
 │   └── tsconfig.json
 ├── frontend/
-│   ├── Dockerfile                  # Production Vite build -> Nginx runner
-│   ├── nginx.conf                  # Single Page Application router & proxy
-│   ├── public/
-│   │   └── favicon.svg             # Custom GroupSync academic graduation emblem
+│   ├── Dockerfile                  # Vite build → Nginx static server
+│   ├── nginx.conf                  # SPA router + /api proxy
+│   ├── vite.config.ts              # Dev proxy: /api, /uploads → :5001
 │   ├── src/
-│   │   ├── api/client.ts           # Axios instance with JWT interceptors
-│   │   ├── components/             # Sidebar, Modals, Steppers, Protection Guards
-│   │   ├── context/AuthContext.tsx # User session & role state provider
-│   │   ├── pages/                  # CoursePage, StudentDashboard, AdminDashboard, Auth
-│   │   ├── index.css               # Material tokens, Tailwind v4 & smooth keyframes
-│   │   └── App.tsx                 # Declarative application routing
-│   ├── package.json
-│   └── vite.config.ts
-├── docker-compose.yml              # Multi-container orchestration specification
-└── README.md                       # Comprehensive documentation & architecture guide
+│   │   ├── api/client.ts           # Axios: JWT interceptor + 401 auto-logout
+│   │   ├── components/
+│   │   │   ├── ProtectedRoute.tsx       # Role-gated route wrapper
+│   │   │   ├── Sidebar.tsx              # Navigation sidebar for both roles
+│   │   │   ├── student/
+│   │   │   │   └── SubmissionModal.tsx  # Two-step stepper + confetti
+│   │   │   └── ui/
+│   │   │       ├── field.tsx            # Form field wrapper
+│   │   │       ├── select.tsx           # Radix UI select wrapper
+│   │   │       └── sheet.tsx            # Slide-over panel
+│   │   ├── context/AuthContext.tsx # User session: login / register / logout
+│   │   ├── pages/
+│   │   │   ├── Login.tsx, Register.tsx, NotFound.tsx
+│   │   │   ├── CoursePage.tsx           # Course detail + assignments + analytics
+│   │   │   ├── StudentDashboard.tsx
+│   │   │   ├── AdminDashboard.tsx
+│   │   │   ├── admin/
+│   │   │   │   ├── ManageAssignments.tsx
+│   │   │   │   ├── SubmissionTracker.tsx
+│   │   │   │   └── AdminGroups.tsx
+│   │   │   └── student/
+│   │   │       ├── GroupManagement.tsx
+│   │   │       ├── AssignmentList.tsx
+│   │   │       └── AssignmentDetail.tsx
+│   │   ├── utils/animations.ts     # GSAP: staggerIn, scaleIn, progressBar
+│   │   ├── App.tsx                 # Declarative routing (React Router v7)
+│   │   ├── main.tsx
+│   │   └── index.css               # Tailwind v4 + custom design tokens
+│   └── package.json
+├── docker-compose.yml              # Frontend + Backend + PostgreSQL containers
+├── vercel.json                     # Vercel SPA + API rewrite rules
+└── README.md
+```
+
+---
+
+## 🔧 Troubleshooting
+
+### `ECONNREFUSED` on IPv6 address (Supabase)
+
+The direct Supabase host (`db.*.supabase.co:5432`) publishes an **IPv6-only DNS record**. Connecting from most local machines (especially macOS) will fail with:
+
+```
+error: connect ECONNREFUSED 2406:...:5432
+```
+
+**Fix:** Use the **Connection Pooler** URL from Supabase dashboard (**Settings → Database → "Transaction" tab**, port `6543`). This resolves to an IPv4 address and works everywhere.
+
+---
+
+### `Failed to start server. Is port 5001 in use?`
+
+A stale backend process is holding the port. Kill it:
+
+```bash
+kill $(lsof -ti :5001)
+```
+
+---
+
+### Password contains special characters (`@`, `#`, `!`, etc.)
+
+URL-encode special characters in `DATABASE_URL`:
+
+| Character | Encoded |
+|---|---|
+| `@` | `%40` |
+| `#` | `%23` |
+| `!` | `%21` |
+| `$` | `%24` |
+| `%` | `%25` |
+
+Example: password `@Pass#1` → `%40Pass%231` in the URL.
+
+---
+
+### `.env` changes not taking effect
+
+`bun --hot` does not re-execute the module graph on `.env` changes. Do a full restart:
+
+```bash
+# Ctrl+C the running process, then:
+bun run dev
 ```
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License**.
 
 <div align="center">
-  <sub>Built with ❤️ for academic collaboration using Bun, React 19, TypeScript, PostgreSQL, and Docker.</sub>
+  <sub>Built with ❤️ for academic collaboration using Bun, React 19, TypeScript, PostgreSQL (Supabase), and Docker.</sub>
 </div>
